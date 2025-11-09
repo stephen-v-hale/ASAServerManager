@@ -33,6 +33,9 @@
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel2 = new ToolStripStatusLabel();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
+            toolStripStatusLabel3 = new ToolStripStatusLabel();
+            toolStripStatusLabel4 = new ToolStripStatusLabel();
+            toolStripStatusLabel5 = new ToolStripStatusLabel();
             timer1 = new System.Windows.Forms.Timer( components );
             menuStrip1 = new MenuStrip();
             serverToolStripMenuItem = new ToolStripMenuItem();
@@ -50,15 +53,29 @@
             comboBox1 = new ComboBox();
             timer2 = new System.Windows.Forms.Timer( components );
             richTextBox1 = new RichTextBox();
+            timer3 = new System.Windows.Forms.Timer( components );
+            notifyIcon1 = new NotifyIcon( components );
+            contextMenuStrip1 = new ContextMenuStrip( components );
+            showWindowToolStripMenuItem = new ToolStripMenuItem();
+            serversListToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem4 = new ToolStripSeparator();
+            statusToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripSeparator();
+            disconnectToolStripMenuItem1 = new ToolStripMenuItem();
+            broadcastToolStripMenuItem = new ToolStripMenuItem();
+            playersToolStripMenuItem1 = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripSeparator();
+            exitToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             panel1.SuspendLayout();
+            contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // statusStrip1
             // 
             statusStrip1.BackColor = Color.WhiteSmoke;
-            statusStrip1.Items.AddRange( new ToolStripItem[] { toolStripStatusLabel2, toolStripStatusLabel1 } );
+            statusStrip1.Items.AddRange( new ToolStripItem[] { toolStripStatusLabel2, toolStripStatusLabel1, toolStripStatusLabel3, toolStripStatusLabel4, toolStripStatusLabel5 } );
             statusStrip1.Location = new Point( 0, 376 );
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size( 557, 22 );
@@ -79,6 +96,21 @@
             toolStripStatusLabel1.Click +=  toolStripStatusLabel1_Click ;
             toolStripStatusLabel1.RightToLeftChanged +=  toolStripStatusLabel1_RightToLeftChanged ;
             toolStripStatusLabel1.TextChanged +=  toolStripStatusLabel1_TextChanged ;
+            // 
+            // toolStripStatusLabel3
+            // 
+            toolStripStatusLabel3.Name = "toolStripStatusLabel3";
+            toolStripStatusLabel3.Size = new Size( 0, 17 );
+            // 
+            // toolStripStatusLabel4
+            // 
+            toolStripStatusLabel4.Name = "toolStripStatusLabel4";
+            toolStripStatusLabel4.Size = new Size( 0, 17 );
+            // 
+            // toolStripStatusLabel5
+            // 
+            toolStripStatusLabel5.Name = "toolStripStatusLabel5";
+            toolStripStatusLabel5.Size = new Size( 0, 17 );
             // 
             // timer1
             // 
@@ -108,20 +140,20 @@
             listToolStripMenuItem.Image = Properties.Resources.servers;
             listToolStripMenuItem.Name = "listToolStripMenuItem";
             listToolStripMenuItem.ShortcutKeys =    Keys.Control  |  Keys.S ;
-            listToolStripMenuItem.Size = new Size( 180, 22 );
+            listToolStripMenuItem.Size = new Size( 132, 22 );
             listToolStripMenuItem.Text = "List";
             listToolStripMenuItem.Click +=  listToolStripMenuItem_Click ;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size( 177, 6 );
+            toolStripMenuItem1.Size = new Size( 129, 6 );
             // 
             // toolsToolStripMenuItem
             // 
             toolsToolStripMenuItem.DropDownItems.AddRange( new ToolStripItem[] { setMessageOfTheDayToolStripMenuItem } );
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            toolsToolStripMenuItem.Size = new Size( 180, 22 );
+            toolsToolStripMenuItem.Size = new Size( 132, 22 );
             toolsToolStripMenuItem.Text = "Tools";
             // 
             // setMessageOfTheDayToolStripMenuItem
@@ -134,7 +166,7 @@
             // closeToolStripMenuItem
             // 
             closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            closeToolStripMenuItem.Size = new Size( 180, 22 );
+            closeToolStripMenuItem.Size = new Size( 132, 22 );
             closeToolStripMenuItem.Text = "Close";
             closeToolStripMenuItem.Click +=  closeToolStripMenuItem_Click ;
             // 
@@ -221,6 +253,95 @@
             richTextBox1.Text = "";
             richTextBox1.TextChanged +=  richTextBox1_TextChanged ;
             // 
+            // timer3
+            // 
+            timer3.Enabled = true;
+            timer3.Interval = 5000;
+            timer3.Tick +=  timer3_Tick ;
+            // 
+            // notifyIcon1
+            // 
+            notifyIcon1.ContextMenuStrip = contextMenuStrip1;
+            notifyIcon1.Icon = ( Icon )resources.GetObject( "notifyIcon1.Icon" );
+            notifyIcon1.Text = "ASA Server Manager";
+            notifyIcon1.Visible = true;
+            notifyIcon1.BalloonTipClicked +=  notifyIcon1_BalloonTipClicked ;
+            notifyIcon1.MouseDoubleClick +=  notifyIcon1_MouseDoubleClick ;
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Items.AddRange( new ToolStripItem[] { showWindowToolStripMenuItem, serversListToolStripMenuItem, toolStripMenuItem4, statusToolStripMenuItem, toolStripMenuItem2, disconnectToolStripMenuItem1, broadcastToolStripMenuItem, playersToolStripMenuItem1, toolStripMenuItem3, exitToolStripMenuItem } );
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size( 151, 176 );
+            // 
+            // showWindowToolStripMenuItem
+            // 
+            showWindowToolStripMenuItem.Name = "showWindowToolStripMenuItem";
+            showWindowToolStripMenuItem.Size = new Size( 150, 22 );
+            showWindowToolStripMenuItem.Text = "Show Window";
+            showWindowToolStripMenuItem.Click +=  showWindowToolStripMenuItem_Click ;
+            // 
+            // serversListToolStripMenuItem
+            // 
+            serversListToolStripMenuItem.Name = "serversListToolStripMenuItem";
+            serversListToolStripMenuItem.Size = new Size( 150, 22 );
+            serversListToolStripMenuItem.Text = "Servers";
+            serversListToolStripMenuItem.Click +=  serversListToolStripMenuItem_Click ;
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size( 147, 6 );
+            // 
+            // statusToolStripMenuItem
+            // 
+            statusToolStripMenuItem.Name = "statusToolStripMenuItem";
+            statusToolStripMenuItem.Size = new Size( 150, 22 );
+            statusToolStripMenuItem.Text = "{Status}";
+            statusToolStripMenuItem.Visible = false;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size( 147, 6 );
+            toolStripMenuItem2.Visible = false;
+            // 
+            // disconnectToolStripMenuItem1
+            // 
+            disconnectToolStripMenuItem1.Enabled = false;
+            disconnectToolStripMenuItem1.Name = "disconnectToolStripMenuItem1";
+            disconnectToolStripMenuItem1.Size = new Size( 150, 22 );
+            disconnectToolStripMenuItem1.Text = "Disconnect";
+            disconnectToolStripMenuItem1.Click +=  disconnectToolStripMenuItem1_Click ;
+            // 
+            // broadcastToolStripMenuItem
+            // 
+            broadcastToolStripMenuItem.Enabled = false;
+            broadcastToolStripMenuItem.Name = "broadcastToolStripMenuItem";
+            broadcastToolStripMenuItem.Size = new Size( 150, 22 );
+            broadcastToolStripMenuItem.Text = "Broadcast";
+            broadcastToolStripMenuItem.Click +=  broadcastToolStripMenuItem_Click ;
+            // 
+            // playersToolStripMenuItem1
+            // 
+            playersToolStripMenuItem1.Enabled = false;
+            playersToolStripMenuItem1.Name = "playersToolStripMenuItem1";
+            playersToolStripMenuItem1.Size = new Size( 150, 22 );
+            playersToolStripMenuItem1.Text = "Players";
+            playersToolStripMenuItem1.Click +=  playersToolStripMenuItem1_Click ;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size( 147, 6 );
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size( 150, 22 );
+            exitToolStripMenuItem.Text = "Exit";
+            exitToolStripMenuItem.Click +=  exitToolStripMenuItem_Click ;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF( 7F, 15F );
@@ -238,6 +359,7 @@
             MinimizeBox = false;
             Name = "Form1";
             Text = "ASA Server Manager";
+            FormClosing +=  Form1_FormClosing ;
             FormClosed +=  Form1_FormClosed ;
             Load +=  Form1_Load ;
             statusStrip1.ResumeLayout( false );
@@ -246,6 +368,7 @@
             menuStrip1.PerformLayout();
             panel1.ResumeLayout( false );
             panel1.PerformLayout();
+            contextMenuStrip1.ResumeLayout( false );
             ResumeLayout( false );
             PerformLayout();
         }
@@ -271,5 +394,21 @@
         public ToolStripStatusLabel toolStripStatusLabel1;
         private ToolStripMenuItem toolsToolStripMenuItem;
         private ToolStripMenuItem setMessageOfTheDayToolStripMenuItem;
+        private System.Windows.Forms.Timer timer3;
+        private ToolStripStatusLabel toolStripStatusLabel3;
+        private ToolStripStatusLabel toolStripStatusLabel4;
+        private ToolStripStatusLabel toolStripStatusLabel5;
+        private NotifyIcon notifyIcon1;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem statusToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem2;
+        private ToolStripMenuItem broadcastToolStripMenuItem;
+        private ToolStripMenuItem playersToolStripMenuItem1;
+        private ToolStripMenuItem showWindowToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem4;
+        private ToolStripSeparator toolStripMenuItem3;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem serversListToolStripMenuItem;
+        private ToolStripMenuItem disconnectToolStripMenuItem1;
     }
 }
