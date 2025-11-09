@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ASARcon/ASARcon.csproj" />
+  <Project Path="ASAServerExplorer/ASAServerExplorer.csproj" />
+</Solution>

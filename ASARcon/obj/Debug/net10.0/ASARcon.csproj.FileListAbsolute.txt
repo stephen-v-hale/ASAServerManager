@@ -1,0 +1,11 @@
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ASARcon.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ASARcon.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ASARcon.AssemblyInfo.cs
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ASARcon.csproj.CoreCompileInputs.cache
+C:\Users\Admin\source\repos\ASA\ASARcon\bin\Debug\net10.0\ASARcon.deps.json
+C:\Users\Admin\source\repos\ASA\ASARcon\bin\Debug\net10.0\ASARcon.dll
+C:\Users\Admin\source\repos\ASA\ASARcon\bin\Debug\net10.0\ASARcon.pdb
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ASARcon.dll
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\refint\ASARcon.dll
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ASARcon.pdb
+C:\Users\Admin\source\repos\ASA\ASARcon\obj\Debug\net10.0\ref\ASARcon.dll
