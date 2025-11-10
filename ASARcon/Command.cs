@@ -12,7 +12,6 @@ public enum Command
 {
     Broadcast,
     GetChat,
-    GetGameLog,
     ServerChat,
     ServerChatTo,
     ServerChatToPlayer,
@@ -41,18 +40,14 @@ public static class CommandExtensions
         return cmd switch
         {
             Command.Broadcast =>
-                args.Length > 0 ? $"Broadcast {EscapeArg( args[0]?.ToString() ?? string.Empty )}" : throw new ArgumentException( "Broadcast requires a message arg." ),
+                args.Length > 0 ? $"cheat Broadcast {EscapeArg( args[0]?.ToString() ?? string.Empty )}" : throw new ArgumentException( "Broadcast requires a message arg." ),
 
             Command.GetChat =>
                 args.Length > 0 && int.TryParse( args[0]?.ToString(), out var idx ) ? $"GetChat {idx}" : throw new ArgumentException( "GetChat requires an integer index arg." ),
-
-            Command.GetGameLog =>
-                args.Length > 0 && int.TryParse( args[0]?.ToString(), out var idx2 ) ? $"GetGameLog {idx2}" : throw new ArgumentException( "GetGameLog requires an integer index arg." ),
-
             Command.ServerChat => args.Length > 0 ? $"SendChat {EscapeArg( args[0]?.ToString() )}" : throw new ArgumentException( "ServerChat requires a message arg" ),
             Command.ServerChatTo => args.Length > 0 ? $"ServerChatTo {EscapeArg( args[0]?.ToString() )} {EscapeArg( args[1]?.ToString() )} " : throw new ArgumentException( "ServerChatTo requires a id and message arg." ),
             Command.ServerChatToPlayer => args.Length > 0 ? $"ServerChatToPlayer {EscapeArg( args[0]?.ToString() )} {EscapeArg( args[1]?.ToString() )} " : throw new ArgumentException( "ServerChatToPlayer requires a id and message arg" ),
-            Command.GetAllState => $"GetAllState",
+            Command.GetAllState => args.Length > 0 ? $"GetAllState {EscapeArg( args[0]?.ToString() )}" : throw new ArgumentException("GetAllStates required <ID>"),
             Command.DoRestartLevel => $"DoRestartLevel",
             Command.Raw =>
                 args.Length > 0 ? args[0]?.ToString() ?? string.Empty : throw new ArgumentException( "Raw requires the full command string as arg." ),

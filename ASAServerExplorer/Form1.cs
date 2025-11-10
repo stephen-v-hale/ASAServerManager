@@ -1,5 +1,10 @@
+﻿using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Forms.Design;
+using System.Xml.Linq;
 
 using ASARcon;
 
@@ -15,6 +20,8 @@ namespace ASAServerExplorer
         int maxReconnectAttempts = 20;
         internal static bool disconnected = false;
 
+        ServerList._ServerListItem _currentItem;
+
 
         public Form1()
         {
@@ -23,6 +30,8 @@ namespace ASAServerExplorer
             disconnected = true;
 
             Instance = this;
+
+            menuStrip1.Renderer = new WhiteSmokeRenderer();
         }
 
 
@@ -34,6 +43,12 @@ namespace ASAServerExplorer
 
         private void timer1_Tick( object sender, EventArgs e )
         {
+
+            if ( disconnected )
+            {
+                timer3.Stop();
+            }
+
             statusToolStripMenuItem.ForeColor = toolStripStatusLabel1.ForeColor;
             statusToolStripMenuItem.Text = toolStripStatusLabel1.Text;
 
@@ -86,6 +101,7 @@ namespace ASAServerExplorer
                         reconnectAttemps += 1;
                         disconnected = true;
                         disconnectToolStripMenuItem_Click( sender, e );
+                        timer3.Stop();
                     }
                     else
                     {
@@ -98,8 +114,14 @@ namespace ASAServerExplorer
                         currentRcon = null;
 
                         disconnectToolStripMenuItem_Click( sender, e );
+                        timer3.Stop();
                     }
                 }
+                panel3.Enabled = false;
+            }
+            else
+            {
+                panel3.Enabled = true;
             }
         }
 
@@ -130,41 +152,76 @@ namespace ASAServerExplorer
             if ( currentRcon == null )
                 currentRcon = new Rcon( authentication );
 
+            currentRcon.OnAvaliabilityCompleted += ( s, e ) =>
+            {
+                if ( e )
+                {
+                    SetLogText( "Server Reachable ✅" );
+                }
+            };
+            currentRcon.OnError += ( sender, e ) =>
+            {
+                richTextBox1.Invoke( () =>
+                {
+                    SetErrorLogMessage( $"ERROR: {e.Message}" );
+                    timer3.Stop();
+                    timer4.Stop();
+                } );
+            };
+
             toolStripStatusLabel1.ForeColor = Color.Black;
 
             toolStripStatusLabel1.Text = "Connecting to " + authentication.Address;
 
             try
             {
-                await currentRcon.ConnectAsync();
-                toolStripStatusLabel1.ForeColor = Color.Black;
-                toolStripStatusLabel1.Text = "Connected";
-
-                if ( await currentRcon.AuthenticateAsync() )
+                if ( await currentRcon.ConnectAsync() )
                 {
-                    toolStripStatusLabel1.ForeColor = Color.DarkGreen;
-                    toolStripStatusLabel1.Text = "Authenticated.";
+                    toolStripStatusLabel1.ForeColor = Color.Black;
+                    toolStripStatusLabel1.Text = "Connected ✅";
 
-                    toolStripStatusLabel1.Image = Properties.Resources.check;
+                    if ( await currentRcon.AuthenticateAsync() )
+                    {
+                        toolStripStatusLabel1.ForeColor = Color.DarkGreen;
+                        toolStripStatusLabel1.Text = "Authenticated";
 
-                    disconnected = false;
+                        toolStripStatusLabel1.Image = Properties.Resources.check;
 
-                    playersToolStripMenuItem1.Enabled = true;
-                    broadcastToolStripMenuItem.Enabled = true;
+                        disconnected = false;
 
-                    disconnectToolStripMenuItem1.Enabled = true;
-                    notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Connected & Authenticated to {authentication.Address}:{authentication.Port}", ToolTipIcon.Info );
+                        playersToolStripMenuItem1.Enabled = true;
+                        broadcastToolStripMenuItem.Enabled = true;
 
-                    reconnectAttemps = 1;
-                }
-                else
-                {
-                    toolStripStatusLabel1.ForeColor = Color.Red;
-                    toolStripStatusLabel1.Text = "Connected";
+                        disconnectToolStripMenuItem1.Enabled = true;
+                        notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Connected & Authenticated to {authentication.Address}:{authentication.Port}", ToolTipIcon.Info );
 
-                    toolStripStatusLabel1.Image = Properties.Resources.cross;
+                        if ( _currentItem.rtgl || _currentItem.rtpl )
+                        {
+                            timer3.Start();
+                        }
 
-                    disconnected = false;
+                        if ( _currentItem.mb )
+                        {
+                            timer4.Start();
+                        }
+                        reconnectAttemps = 1;
+
+                        if ( _currentItem.cheats )
+                        {
+                            SetLogText( "Enabling cheats" );
+                            if ( await currentRcon.EnableCheats() )
+                                SetLogText( "Cheats Enabled ✅" );
+                        }
+                    }
+                    else
+                    {
+                        toolStripStatusLabel1.ForeColor = Color.Red;
+                        toolStripStatusLabel1.Text = "Connected";
+
+                        toolStripStatusLabel1.Image = Properties.Resources.cross;
+
+                        disconnected = false;
+                    }
                 }
             }
             catch
@@ -178,7 +235,6 @@ namespace ASAServerExplorer
 
                 disconnected = false;
             }
-
         }
 
         // Check if there is a network connection
@@ -206,18 +262,28 @@ namespace ASAServerExplorer
 
         private void closeToolStripMenuItem_Click( object sender, EventArgs e )
         {
+            exitApp = true;
             Close();
         }
+
         public string ServerName = "";
+        public List<string> MessagesToBroadcast = new List<string>();
+        public bool MessageBroadCast = false;
+        public int MessageTimeInterval = 0;
         private void listToolStripMenuItem_Click( object sender, EventArgs e )
         {
             ServerList list = new ServerList();
-            list.OnConnect += async ( e, s ) =>
+            list.OnConnect += async ( e, s, info ) =>
             {
                 ServerName = s;
                 currentAuth = e;
-
+                _currentItem = info;
+                MessagesToBroadcast.AddRange( info.mbl );
+                MessagesToBroadcast = info.mbl;
+                MessageTimeInterval = info.mblt;
                 Connect( e );
+
+                timer3_Tick( this, EventArgs.Empty );
             };
             list.ShowDialog();
         }
@@ -285,6 +351,9 @@ namespace ASAServerExplorer
                 disconnectToolStripMenuItem1.Enabled = false;
 
                 notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Disconnected", ToolTipIcon.Info );
+                timer3.Enabled = false;
+                timer4.Enabled = false;
+                panel8.Controls.Clear();
             }
         }
 
@@ -297,19 +366,24 @@ namespace ASAServerExplorer
 
                 var result =await currentRcon.SendCommandAsync( command, default, textBox1.Text.Split( " " ) );
 
-                richTextBox1.AppendText( result );
+                if ( result.Contains( "Server received" ) )
+                {
+                    SetErrorLogMessage( result.Replace( "\n", "" ) );
+                }
+                else
+                {
+                    SetLogText( result.Replace( "\n", "" ) );
+                }
             }
             catch
             {
-                richTextBox1.SelectionColor = Color.Red;
-                richTextBox1.SelectedText = "Unable to send command\n";
+                SetErrorLogMessage( "Unable to send command" );
             }
         }
 
         private void playersToolStripMenuItem_Click( object sender, EventArgs e )
         {
-            PlayerList list = new PlayerList(currentRcon);
-            list.ShowDialog();
+            panel5.Visible = !panel5.Visible;
         }
 
         private void toolStripStatusLabel1_Click( object sender, EventArgs e )
@@ -324,12 +398,36 @@ namespace ASAServerExplorer
 
         private void toolStripStatusLabel1_TextChanged( object sender, EventArgs e )
         {
-            richTextBox1.SelectionColor = toolStripStatusLabel1.ForeColor;
-            richTextBox1.SelectedText = toolStripStatusLabel1.Text + "\n";
+
+            if ( toolStripStatusLabel1.ForeColor == Color.Red )
+            {
+                SetErrorLogMessage( toolStripStatusLabel1.Text );
+            }
+            else
+            {
+                SetLogText( toolStripStatusLabel1.Text, toolStripStatusLabel1.ForeColor, Color.White );
+            }
         }
+
+        void SetErrorLogMessage( string message )
+        {
+            SetLogText( message, Color.White, Color.Red );
+        }
+        void SetLogText( string message, Color fontColor, Color background )
+        {
+            richTextBox1.SelectionColor = fontColor;
+            richTextBox1.SelectionBackColor = background;
+            richTextBox1.SelectedText = message + "\n";
+            richTextBox1.SelectionColor = Color.Black;
+            richTextBox1.SelectionBackColor = Color.White;
+            richTextBox1.ScrollToCaret();
+        }
+        void SetLogText( string message ) => SetLogText( message, Color.Black, Color.White );
 
         private void Form1_FormClosed( object sender, FormClosedEventArgs e )
         {
+            if ( exitApp )
+                Process.GetCurrentProcess().Kill();
 
         }
 
@@ -346,14 +444,12 @@ namespace ASAServerExplorer
             {
                 if ( await currentRcon.SetMessageOfTheDay( item ) )
                 {
-                    richTextBox1.SelectionColor = Color.Black;
-                    richTextBox1.SelectedText = "MessageOfTheDay Set To " + item;
+                    SetLogText( $"Message of the day set to {'"'}{item}{'"'}", Color.Black, Color.White );
 
                 }
                 else
                 {
-                    richTextBox1.SelectionColor = Color.Red;
-                    richTextBox1.SelectedText = "There was an issue sending this command.";
+                    SetErrorLogMessage( "There was an issue with sending MessageOfTheDay" );
                 }
             }
         }
@@ -364,58 +460,110 @@ namespace ASAServerExplorer
         /// Detects joins and leaves.
         /// </summary>
         private List<string> _lastPlayers = new List<string>();
+        private List<ASAPlayer> joined1 = new List<ASAPlayer>();
 
+        private List<string> _lastLog = new List<string>();
         private async void timer3_Tick( object sender, EventArgs e )
         {
 
-            if ( currentRcon == null )
-                return;
-
-            // get latest players
-            var players = await currentRcon.GetPlayerList();
-            var currentPlayers = players
-               .Where(p => p.ValidPlayer)
-               .Select(p => p.Name)
-               .ToList();
-
-            // detect joins
-            var joined = currentPlayers.Except(_lastPlayers).ToList();
-
-            // detect leaves
-            var left = _lastPlayers.Except(currentPlayers).ToList();
-
-            // notify joins
-            foreach ( var name in joined )
+            if ( currentRcon != null && currentRcon.IsConnected && !disconnected )
             {
-                notifyIcon1.ShowBalloonTip( 10, "Players", $"{name} has joined {ServerName}", ToolTipIcon.Info );
-                richTextBox1.AppendText( $"{name} has joined {ServerName}\n" );
+                var players = await currentRcon.GetPlayerList();
+                var currentPlayers = players
+              .Where( p => p.ValidPlayer )
+              .Select( p => p.Name )
+              .ToList();
+
+                if ( _currentItem.rtpl )
+                {
+                    panel8.Controls.Clear();
+
+                    // detect joins
+                    var joined = currentPlayers.Except(_lastPlayers).ToList();
+
+                    // detect leaves
+                    var left = _lastPlayers.Except(currentPlayers).ToList();
+
+
+                    joined1.Clear();
+                    // notify joins
+                    foreach ( var name in joined )
+                    {
+                        notifyIcon1.ShowBalloonTip( 10, "Players", $"{name} has joined {ServerName}", ToolTipIcon.Info );
+
+                        SetLogText( $"{name} has joined {ServerName}\n" );
+
+                        foreach ( var player in players )
+                            if ( player.Name == name || player.Name.Contains( name ) )
+                                joined1.Add( player );
+                    }
+
+                    // notify leaves
+                    foreach ( var name in left )
+                    {
+                        notifyIcon1.ShowBalloonTip( 10, "Players", $"{name} has left {ServerName}", ToolTipIcon.Info );
+                        SetLogText( $"{name} has left {ServerName}\n" );
+                    }
+                    // save for next tick diff
+                    _lastPlayers = currentPlayers;
+
+
+                    foreach ( var i in players )
+                    {
+                        var playerItem = new PlayerUserControl(i, i.ValidPlayer);
+                        playerItem.Dock = DockStyle.Top;
+                        panel8.Controls.Add( playerItem );
+                    }
+
+                    toolStripStatusLabel4.Text = $"{currentPlayers.Count} Players Online";
+                    toolStripStatusLabel3.Text = "|";
+                }
+
+                if ( _currentItem.rtgl )
+                {
+                    var currentLogs = await currentRcon.GetServerLog();
+                    var logs = currentLogs.ToList().Except(_lastLog).ToList();
+                    var previous = _lastLog.Except(currentLogs).ToList();
+
+                    foreach ( var log in logs )
+                    {
+                        if ( !log.Contains( "Server received" ) && !string.IsNullOrWhiteSpace( log ) )
+                            SetLogText( log );
+                    }
+
+                    _lastLog = currentLogs.ToList();
+                }
+
+                if ( _currentItem.mb )
+                {
+                    currentTime += 5;
+
+                    if ( currentTime >= _currentItem.mblt )
+                    {
+
+                        if ( players.Length > 0 )
+                        {
+                            if ( currentMessageIndex > MessagesToBroadcast.Count - 1 )
+                                currentMessageIndex = 0;
+
+                            foreach ( var p in players )
+                            {
+                                if ( p.ValidPlayer )
+                                {
+                                    p.SendMessage( MessagesToBroadcast[currentMessageIndex] );
+                                }
+                            }
+                        }
+
+                        currentMessageIndex += 1;
+                        currentTime = 0;
+                    }
+                }
             }
 
-            // notify leaves
-            foreach ( var name in left )
-            {
-                notifyIcon1.ShowBalloonTip( 10, "Players", $"{name} has left {ServerName}", ToolTipIcon.Info );
-                richTextBox1.AppendText( $"{name} has left {ServerName}\n" );
-            }
 
-            // update status bar
-            toolStripStatusLabel4.Text = $"{currentPlayers.Count} Players Online";
-            toolStripStatusLabel3.Text = "|";
-
-            // save for next tick diff
-            _lastPlayers = currentPlayers;
         }
 
-        async Task<bool> StillConnected(string playerName)
-        {
-            var players = await currentRcon.GetPlayerList();
-
-            foreach ( var player in players )
-                if ( player.Name.Contains(playerName) )
-                    return true;
-
-            return false;
-        }
         private void notifyIcon1_MouseDoubleClick( object sender, MouseEventArgs e )
         {
             this.Show();
@@ -423,12 +571,15 @@ namespace ASAServerExplorer
 
         private void Form1_FormClosing( object sender, FormClosingEventArgs e )
         {
-            if ( exitApp )
+            var messageResult = MessageBox.Show("Minimize into tray?", "Close", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if ( messageResult == DialogResult.No )
             {
-                this.Close();
+                exitApp = true;
             }
             else
             {
+                notifyIcon1.Visible = true;
                 notifyIcon1.ShowBalloonTip( 500, "Close", "ASA Server Manager Hidden", ToolTipIcon.Info );
                 e.Cancel = true;
                 this.Hide();
@@ -443,14 +594,12 @@ namespace ASAServerExplorer
                 try
                 {
                     currentRcon.SendCommandAsync( Command.Broadcast, default, new object[] { input } );
-                    richTextBox1.SelectionColor = Color.Black;
-                    richTextBox1.SelectedText = "Message Broadcasted";
+                    SetLogText( "Message Broadcasted" );
                     notifyIcon1.ShowBalloonTip( 10, "Broadcasted", "Message Broadcasted", ToolTipIcon.Info );
                 }
                 catch
                 {
-                    richTextBox1.SelectionColor = Color.Red;
-                    richTextBox1.SelectedText = "Error while broadcasting message";
+                    SetErrorLogMessage( "Error while broadcasting message." );
                     notifyIcon1.ShowBalloonTip( 10, "Broadcasted", "Error while broadcasting message", ToolTipIcon.Error );
                 }
             }
@@ -458,8 +607,6 @@ namespace ASAServerExplorer
         bool exitApp = false;
         private void playersToolStripMenuItem1_Click( object sender, EventArgs e )
         {
-            PlayerList list = new PlayerList(currentRcon);
-            list.ShowDialog();
         }
 
         private void showWindowToolStripMenuItem_Click( object sender, EventArgs e )
@@ -477,11 +624,14 @@ namespace ASAServerExplorer
         private void serversListToolStripMenuItem_Click( object sender, EventArgs e )
         {
             ServerList list = new ServerList();
-            list.OnConnect += async ( e, s ) =>
+            list.OnConnect += async ( e, s, info ) =>
             {
                 ServerName = s;
                 currentAuth = e;
-
+                _currentItem = info;
+                MessagesToBroadcast.AddRange( info.mbl );
+                MessagesToBroadcast = info.mbl;
+                MessageTimeInterval = info.mblt;
                 Connect( e );
             };
             list.ShowDialog();
@@ -496,5 +646,109 @@ namespace ASAServerExplorer
         {
             this.Show();
         }
+
+        private void comboBox1_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            var text = comboBox1.SelectedItem switch
+            {
+                "Broadcast" => "<message>",
+                "ServerChat" => "<message>",
+                "ServerChatTo" => "<playerId> <message>",
+                "ServerChatToPlayer" => "<playerName> <message>",
+                "KickPlayer" => "<playerIdOrName>",
+                "BanPlayer" => "<playerIdOrName>",
+                "GetAllState" => "<id>",
+                "DoRestartLevel"=> "Empty arguments",
+                "GetChat"=> "<index>",
+                "Raw" => "<command> <args>",
+            };
+
+            textBox1.PlaceholderText = text;
+        }
+
+        private void panel3_Paint( object sender, PaintEventArgs e )
+        {
+        }
+
+        private void menuStrip1_Paint( object sender, PaintEventArgs e )
+        {
+
+        }
+
+        private void button2_Click( object sender, EventArgs e )
+        {
+            Authentication ee = new Authentication(textBox2.Text, textBox3.Text, (int)numericUpDown1.Value);
+            ServerName = "Quick Connect";
+            currentAuth = ee;
+            _currentItem = new ServerList._ServerListItem()
+            {
+                Address = ee.Address,
+                Password = ee.Password,
+                Port = ee.Port.ToString(),
+                Name = "Quick Connect",
+                rtgl = false,
+                rtpl = true,
+            };
+            Connect( ee );
+
+            timer3_Tick( this, EventArgs.Empty );
+        }
+
+        int currentTime = 0;
+        int currentMessageIndex = 0;
+        private async void timer4_Tick( object sender, EventArgs e )
+        {
+
+        }
+
+        private void button3_Click( object sender, EventArgs e )
+        {
+
+        }
+
+        private void button3_Click_1( object sender, EventArgs e )
+        {
+            panel5.Visible = false;
+        }
+
+        private void Form1_Shown( object sender, EventArgs e )
+        {
+            notifyIcon1.Visible = false;
+        }
+
+        private void toolStripMenuItem5_Click( object sender, EventArgs e )
+        {
+            richTextBox1.Text = "";
+        }
+        private void toolStripMenuItem6_Click( object sender, EventArgs e )
+        {
+            currentRcon.ShutDown();
+        }
+
+        private void panel7_Paint( object sender, PaintEventArgs e )
+        {
+            e.Graphics.FillRectangle( new LinearGradientBrush( e.ClipRectangle, Color.White, Color.WhiteSmoke, LinearGradientMode.Vertical ), e.ClipRectangle );
+        }
+    }
+}
+
+class WhiteSmokeRenderer : ToolStripProfessionalRenderer
+{
+    public WhiteSmokeRenderer() : base( new WhiteSmokeColors() ) { }
+
+    private sealed class WhiteSmokeColors : ProfessionalColorTable
+    {
+        public override Color ToolStripGradientBegin => Color.WhiteSmoke;
+        public override Color ToolStripGradientMiddle => Color.WhiteSmoke;
+        public override Color ToolStripGradientEnd => Color.WhiteSmoke;
+
+        // drop down menus also
+        public override Color MenuStripGradientBegin => Color.WhiteSmoke;
+        public override Color MenuStripGradientEnd => Color.WhiteSmoke;
+    }
+
+    protected override void OnRenderToolStripBackground( ToolStripRenderEventArgs e )
+    {
+        base.OnRenderToolStripBackground( e );
     }
 }

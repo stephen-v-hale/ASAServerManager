@@ -40,7 +40,12 @@ partial class ServerListItem
         button1 = new Button();
         panel2 = new Panel();
         textBox4 = new TextBox();
+        checkBox2 = new CheckBox();
+        checkBox1 = new CheckBox();
+        groupBox1 = new GroupBox();
+        checkBox5 = new CheckBox();
         panel1.SuspendLayout();
+        groupBox1.SuspendLayout();
         SuspendLayout();
         // 
         // label1
@@ -108,7 +113,7 @@ partial class ServerListItem
         panel1.Controls.Add( button1 );
         panel1.Controls.Add( panel2 );
         panel1.Dock = DockStyle.Bottom;
-        panel1.Location = new Point( 0, 93 );
+        panel1.Location = new Point( 0, 178 );
         panel1.Name = "panel1";
         panel1.Size = new Size( 334, 36 );
         panel1.TabIndex = 8;
@@ -149,12 +154,55 @@ partial class ServerListItem
         textBox4.Size = new Size( 43, 23 );
         textBox4.TabIndex = 9;
         // 
+        // checkBox2
+        // 
+        checkBox2.AutoSize = true;
+        checkBox2.Location = new Point( 10, 39 );
+        checkBox2.Name = "checkBox2";
+        checkBox2.Size = new Size( 204, 19 );
+        checkBox2.TabIndex = 13;
+        checkBox2.Text = "Show realtime player connectivity";
+        checkBox2.UseVisualStyleBackColor = true;
+        // 
+        // checkBox1
+        // 
+        checkBox1.AutoSize = true;
+        checkBox1.Location = new Point( 10, 21 );
+        checkBox1.Name = "checkBox1";
+        checkBox1.Size = new Size( 154, 19 );
+        checkBox1.TabIndex = 12;
+        checkBox1.Text = "Show realtime game log";
+        checkBox1.UseVisualStyleBackColor = true;
+        // 
+        // groupBox1
+        // 
+        groupBox1.Controls.Add( checkBox5 );
+        groupBox1.Controls.Add( checkBox1 );
+        groupBox1.Controls.Add( checkBox2 );
+        groupBox1.Location = new Point( 3, 90 );
+        groupBox1.Name = "groupBox1";
+        groupBox1.Size = new Size( 319, 83 );
+        groupBox1.TabIndex = 14;
+        groupBox1.TabStop = false;
+        groupBox1.Text = "Server Options";
+        // 
+        // checkBox5
+        // 
+        checkBox5.AutoSize = true;
+        checkBox5.Location = new Point( 10, 59 );
+        checkBox5.Name = "checkBox5";
+        checkBox5.Size = new Size( 137, 19 );
+        checkBox5.TabIndex = 14;
+        checkBox5.Text = "Message broadcaster";
+        checkBox5.UseVisualStyleBackColor = true;
+        // 
         // ServerListItem
         // 
         AutoScaleDimensions = new SizeF( 7F, 15F );
         AutoScaleMode = AutoScaleMode.Font;
         BackColor = Color.White;
-        ClientSize = new Size( 334, 129 );
+        ClientSize = new Size( 334, 214 );
+        Controls.Add( groupBox1 );
         Controls.Add( textBox4 );
         Controls.Add( panel1 );
         Controls.Add( textBox3 );
@@ -169,6 +217,8 @@ partial class ServerListItem
         MinimizeBox = false;
         Text = "Add Server";
         panel1.ResumeLayout( false );
+        groupBox1.ResumeLayout( false );
+        groupBox1.PerformLayout();
         ResumeLayout( false );
         PerformLayout();
     }
@@ -187,4 +237,8 @@ partial class ServerListItem
     private Button button1;
     private Panel panel2;
     private TextBox textBox4;
+    private CheckBox checkBox2;
+    private CheckBox checkBox1;
+    private GroupBox groupBox1;
+    private CheckBox checkBox5;
 }

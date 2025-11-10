@@ -8,6 +8,8 @@ using System.Windows.Forms;
 
 using ASARcon;
 
+using Microsoft.VisualBasic.ApplicationServices;
+
 namespace ASAServerExplorer;
 
 public partial class ServerList : Form
@@ -18,7 +20,9 @@ public partial class ServerList : Form
         public string Address;
         public string Password;
         public string Port;
-
+        public bool rtgl, rtpl, mb, cheats;
+        public List<string> mbl;
+        public int mblt;
     }
     public ServerList()
     {
@@ -35,6 +39,15 @@ public partial class ServerList : Form
                     Address = init.Sections[1].Value,
                     Password = init.Sections[2].Value,
                     Port = init.Sections[3].Value,
+                    rtgl = init.Sections[4].Value == "1" ? true : false,
+                    rtpl = init.Sections[5].Value == "1" ? true : false,
+                    mb = init.Sections[6].Value == "1" ? true: false,
+                    mbl =init.Sections[7].Value
+    .Split('|')
+    .Where(p => !string.IsNullOrWhiteSpace(p))
+    .ToList(),
+                    mblt = int.Parse(init.Sections[8].Value),
+                    cheats = init.Sections[9].Value == "1"? true : false,
                 };
                 TreeNode node = new TreeNode(list.Name);
                 node.SelectedImageIndex = 0;
@@ -78,7 +91,7 @@ public partial class ServerList : Form
         {
             Owner = "ASAServer",
             Name = "Name",
-            Value = label1.Text,
+            Value = groupBox1.Text,
         } );
         parser.Sections.Add( new ServerIniParser.ServerIniSection()
         {
@@ -98,20 +111,73 @@ public partial class ServerList : Form
             Name = "Port",
             Value = numericUpDown1.Value.ToString(),
         } );
+
+        parser.Sections.Add( new ServerIniParser.ServerIniSection()
+        {
+            Owner = "ASAServer",
+            Name = "rtgl",
+            Value = checkBox1.Checked ? "1" : "0"
+        } );
+
+        parser.Sections.Add( new ServerIniParser.ServerIniSection()
+        {
+            Owner = "ASAServer",
+            Name = "rtpl",
+            Value = checkBox2.Checked ? "1" : "0"
+        } );
+
+        parser.Sections.Add( new ServerIniParser.ServerIniSection()
+        {
+            Owner = "ASAServer",
+            Name = "mb",
+            Value = checkBox5.Checked ? "1" : "0"
+        } );
+        string items = "";
+        foreach ( var item in listBox1.Items )
+            items += $"{item}|";
+        parser.Sections.Add( new ServerIniParser.ServerIniSection()
+        {
+            Owner = "ASAServer",
+            Name = "mbl",
+            Value = string.IsNullOrWhiteSpace( items ) ? "|" : items,
+        } );
+
+        parser.Sections.Add( new ServerIniParser.ServerIniSection()
+        {
+            Owner = "ASAServer",
+            Name = "mblt",
+            Value = numericUpDown2.Value.ToString(),
+        } );
+
+        parser.Sections.Add( new ServerIniParser.ServerIniSection()
+        {
+            Owner = "ASAServer",
+            Name = "cheats",
+            Value = checkBox3.Checked ? "1" : "0",
+        } );
+
+
+
+
         _ServerListItem list = new _ServerListItem()
         {
-            Name = label1.Text,
+            Name = groupBox1.Text,
             Address = textBox1.Text,
             Password = textBox2.Text,
             Port = numericUpDown1.Value.ToString(),
+            rtgl = checkBox1.Checked,
+            rtpl = checkBox2.Checked,
+            mb = checkBox5.Checked,
+            mbl = items.Split("|").ToList(),
+            cheats = checkBox3.Checked,
         };
         if ( !Directory.Exists( Environment.CurrentDirectory + @"\Servers" ) ) Directory.CreateDirectory( Environment.CurrentDirectory + @"\Servers" );
         textBox1.Text = list.Address;
         textBox2.Text = list.Password;
         numericUpDown1.Value = int.Parse( list.Port );
-        label1.Text = list.Name;
+        groupBox1.Text = list.Name;
 
-        parser.SaveToFile( Environment.CurrentDirectory + @"\Servers\" + label1.Text );
+        parser.SaveToFile( Environment.CurrentDirectory + @"\Servers\" + groupBox1.Text );
 
         treeView1.SelectedNode.Tag = list;
 
@@ -151,6 +217,45 @@ public partial class ServerList : Form
                 Value = input.Port.ToString(),
             } );
 
+            parser.Sections.Add( new ServerIniParser.ServerIniSection()
+            {
+                Owner = "ASAServer",
+                Name = "rtgl",
+                Value = input.ShowRealTimeLog ? "1" : "0",
+            } );
+            parser.Sections.Add( new ServerIniParser.ServerIniSection()
+            {
+                Owner = "ASAServer",
+                Name = "rtpl",
+                Value = input.ShowRealTimePlayerLogging ? "1" : "0",
+            } );
+            parser.Sections.Add( new ServerIniParser.ServerIniSection()
+            {
+                Owner = "ASAServer",
+                Name = "mb",
+                Value = input.MessageBroadcaster ? "1" : "0",
+            } );
+            parser.Sections.Add( new ServerIniParser.ServerIniSection()
+            {
+                Owner = "ASAServer",
+                Name = "mbl",
+                Value = "|"
+            } );
+
+            parser.Sections.Add( new ServerIniParser.ServerIniSection()
+            {
+                Owner = "ASAServer",
+                Name = "mblt",
+                Value = "0"
+            } );
+
+            parser.Sections.Add( new ServerIniParser.ServerIniSection()
+            {
+                Owner = "ASAServer",
+                Name = "cheats",
+                Value = "0"
+            } );
+
             if ( !Directory.Exists( Environment.CurrentDirectory + @"\Servers" ) ) Directory.CreateDirectory( Environment.CurrentDirectory + @"\Servers" );
 
             parser.SaveToFile( Environment.CurrentDirectory + @"\Servers\" + input.Name );
@@ -169,6 +274,8 @@ public partial class ServerList : Form
                     Address = init.Sections[1].Value,
                     Password = init.Sections[2].Value,
                     Port = init.Sections[3].Value,
+                    rtgl = init.Sections[4].Value == "1" ? true : false,
+                    rtpl = init.Sections[5].Value == "1" ? true : false,
                 };
                 TreeNode node = new TreeNode(list.Name);
                 node.SelectedImageIndex = 0;
@@ -198,11 +305,15 @@ public partial class ServerList : Form
             textBox1.Text = info.Address;
             textBox2.Text = info.Password;
             numericUpDown1.Value = int.Parse( info.Port );
-            label1.Text = info.Name;
-
+            groupBox1.Text = info.Name;
+            checkBox1.Checked = info.rtgl;
+            checkBox2.Checked = info.rtpl;
             Width = 541;
             panel1.Visible = true;
-
+            numericUpDown2.Value = info.mblt;
+            listBox1.Items.AddRange( info.mbl.ToArray() );
+            checkBox5.Checked = info.mb;
+            checkBox3.Checked = info.cheats;
             if ( Form1.currentRcon != null )
             {
                 if ( info.Address == Form1.currentRcon.Authentication.Address )
@@ -214,12 +325,18 @@ public partial class ServerList : Form
                     button2.Text = "Connect";
                 }
             }
+            textChanged1 = false;
+            textChanged2 = false;
+            portChagned = false;
+            timer1.Start();
         }
 
         else
         {
             Width = 243;
             panel1.Visible = false;
+
+            timer1.Stop();
         }
     }
 
@@ -229,7 +346,7 @@ public partial class ServerList : Form
         treeView1.Nodes.Remove( treeView1.SelectedNode );
     }
 
-    public delegate void ConnectClicked( Authentication authenticate, string serverName );
+    public delegate void ConnectClicked( Authentication authenticate, string serverName, _ServerListItem info );
 
     public event ConnectClicked OnConnect;
 
@@ -251,21 +368,9 @@ public partial class ServerList : Form
         }
         else
         {
-            if ( Form1.currentRcon != null )
-            {
-                Form1.currentRcon.Disconnect();
-                Form1.currentRcon.Dispose();
-                Form1.currentRcon = null;
-
-                Form1.disconnected = true;
-
-                Form1.Instance.toolStripStatusLabel1.ForeColor = Color.Black;
-                Form1.Instance.toolStripStatusLabel1.Text = "Disconnected from " + Form1.currentRcon.Authentication.Address;
-                Form1.Instance.toolStripStatusLabel1.Image = Properties.Resources.cross;
-            }
             var info = (_ServerListItem)treeView1.SelectedNode.Tag;
 
-            OnConnect?.Invoke( new Authentication( info.Address, info.Password, int.Parse( info.Port ) ), label1.Text );
+            OnConnect?.Invoke( new Authentication( info.Address, info.Password, int.Parse( info.Port ) ), groupBox1.Text, info );
 
             DialogResult = DialogResult.OK;
             Close();
@@ -297,6 +402,59 @@ public partial class ServerList : Form
     {
         File.Delete( $"{Environment.CurrentDirectory}\\Servers\\{treeView1.SelectedNode.Text}" );
         treeView1.Nodes.Remove( treeView1.SelectedNode );
+    }
+
+    private void checkBox5_CheckedChanged( object sender, EventArgs e )
+    {
+        if ( checkBox5.Checked )
+        {
+            Height = 442;
+            timer2.Start();
+        }
+        else
+        {
+            Height = 250;
+            timer2.Stop();
+        }
+
+        textChanged1 = true;
+    }
+
+    private void button4_Click( object sender, EventArgs e )
+    {
+        listBox1.Items.Add( InputBox.Show( "Message to show", "Message" ) );
+        textChanged1 = true;
+    }
+
+    private void button5_Click( object sender, EventArgs e )
+    {
+        listBox1.Items.Remove( listBox1.SelectedItem );
+        textChanged1 = true;
+    }
+
+    private void numericUpDown2_ValueChanged( object sender, EventArgs e )
+    {
+        textChanged1 = true;
+    }
+
+    private void listBox1_SelectedIndexChanged( object sender, EventArgs e )
+    {
+        textChanged1 = true;
+    }
+
+    private void checkBox1_CheckedChanged( object sender, EventArgs e )
+    {
+        textChanged1 = true;
+    }
+
+    private void checkBox2_CheckedChanged( object sender, EventArgs e )
+    {
+        textChanged1 = true;
+    }
+
+    private void checkBox3_CheckedChanged( object sender, EventArgs e )
+    {
+        textChanged1 = true;
     }
 }
 
@@ -361,5 +519,49 @@ public class ServerIniParser
             writer.WriteLine( $"{section.Name}={section.Value}" );
         }
         writer.Close();
+    }
+}
+public static class InputBox
+{
+    /// <summary>
+    /// Shows an input dialog and returns the user input.
+    /// </summary>
+    /// <param name="prompt">The message to display.</param>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="defaultValue">The default text in the input box.</param>
+    /// <returns>User input as a string. Empty string if cancelled.</returns>
+    public static string Show( string prompt, string title = "Input", string defaultValue = "" )
+    {
+        Form inputForm = new Form()
+        {
+            Width = 400,
+            Height = 150,
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            Text = title,
+            StartPosition = FormStartPosition.CenterScreen,
+            MinimizeBox = false,
+            MaximizeBox = false
+        };
+
+        Label textLabel = new Label() { Left = 10, Top = 20, Width = 360, Text = prompt };
+        TextBox inputBox = new TextBox() { Left = 10, Top = 50, Width = 360, Text = defaultValue };
+
+        Button okButton = new Button() { Text = "OK", Left = 200, Width = 80, Top = 80, DialogResult = DialogResult.OK };
+        Button cancelButton = new Button() { Text = "Cancel", Left = 290, Width = 80, Top = 80, DialogResult = DialogResult.Cancel };
+
+        okButton.Click += ( sender, e ) => { inputForm.Close(); };
+        cancelButton.Click += ( sender, e ) => { inputForm.Close(); };
+
+        inputForm.Controls.Add( textLabel );
+        inputForm.Controls.Add( inputBox );
+        inputForm.Controls.Add( okButton );
+        inputForm.Controls.Add( cancelButton );
+
+        inputForm.AcceptButton = okButton;
+        inputForm.CancelButton = cancelButton;
+
+        DialogResult result = inputForm.ShowDialog();
+
+        return result == DialogResult.OK ? inputBox.Text : "";
     }
 }

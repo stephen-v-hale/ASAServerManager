@@ -15,6 +15,10 @@ public partial class ServerListItem : Form
     public string Password => textBox3.Text;
     public int Port => int.Parse( textBox4.Text );
 
+    public bool ShowRealTimeLog => checkBox1.Checked;
+    public bool ShowRealTimePlayerLogging => checkBox2.Checked;
+
+    public bool MessageBroadcaster => checkBox5.Checked;
     public ServerListItem()
     {
         InitializeComponent();
