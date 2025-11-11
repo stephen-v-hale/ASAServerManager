@@ -40,10 +40,10 @@ partial class ServerListItem
         button1 = new Button();
         panel2 = new Panel();
         textBox4 = new TextBox();
-        checkBox2 = new CheckBox();
         checkBox1 = new CheckBox();
         groupBox1 = new GroupBox();
         checkBox5 = new CheckBox();
+        checkBox2 = new CheckBox();
         panel1.SuspendLayout();
         groupBox1.SuspendLayout();
         SuspendLayout();
@@ -154,16 +154,6 @@ partial class ServerListItem
         textBox4.Size = new Size( 43, 23 );
         textBox4.TabIndex = 9;
         // 
-        // checkBox2
-        // 
-        checkBox2.AutoSize = true;
-        checkBox2.Location = new Point( 10, 39 );
-        checkBox2.Name = "checkBox2";
-        checkBox2.Size = new Size( 204, 19 );
-        checkBox2.TabIndex = 13;
-        checkBox2.Text = "Show realtime player connectivity";
-        checkBox2.UseVisualStyleBackColor = true;
-        // 
         // checkBox1
         // 
         checkBox1.AutoSize = true;
@@ -195,6 +185,16 @@ partial class ServerListItem
         checkBox5.TabIndex = 14;
         checkBox5.Text = "Message broadcaster";
         checkBox5.UseVisualStyleBackColor = true;
+        // 
+        // checkBox2
+        // 
+        checkBox2.AutoSize = true;
+        checkBox2.Location = new Point( 10, 39 );
+        checkBox2.Name = "checkBox2";
+        checkBox2.Size = new Size( 204, 19 );
+        checkBox2.TabIndex = 13;
+        checkBox2.Text = "Show realtime player connectivity";
+        checkBox2.UseVisualStyleBackColor = true;
         // 
         // ServerListItem
         // 
@@ -237,8 +237,8 @@ partial class ServerListItem
     private Button button1;
     private Panel panel2;
     private TextBox textBox4;
-    private CheckBox checkBox2;
     private CheckBox checkBox1;
     private GroupBox groupBox1;
     private CheckBox checkBox5;
+    private CheckBox checkBox2;
 }

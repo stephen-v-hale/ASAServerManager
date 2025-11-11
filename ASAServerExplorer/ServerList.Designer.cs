@@ -37,6 +37,7 @@ partial class ServerList
         removeToolStripMenuItem = new ToolStripMenuItem();
         imageList1 = new ImageList( components );
         panel1 = new Panel();
+        panel2 = new Panel();
         groupBox2 = new GroupBox();
         button5 = new Button();
         button4 = new Button();
@@ -68,11 +69,12 @@ partial class ServerList
         // 
         // treeView1
         // 
-        treeView1.Anchor =     AnchorStyles.Top  |  AnchorStyles.Bottom   |  AnchorStyles.Left ;
+        treeView1.BorderStyle = BorderStyle.None;
         treeView1.ContextMenuStrip = contextMenuStrip1;
+        treeView1.Dock = DockStyle.Left;
         treeView1.ImageIndex = 0;
         treeView1.ImageList = imageList1;
-        treeView1.Location = new Point( 12, 13 );
+        treeView1.Location = new Point( 0, 0 );
         treeView1.Name = "treeView1";
         treeNode1.ImageIndex = 1;
         treeNode1.Name = "Node0";
@@ -80,7 +82,7 @@ partial class ServerList
         treeNode1.Text = "Servers";
         treeView1.Nodes.AddRange( new TreeNode[] { treeNode1 } );
         treeView1.SelectedImageIndex = 0;
-        treeView1.Size = new Size( 204, 187 );
+        treeView1.Size = new Size( 204, 201 );
         treeView1.TabIndex = 0;
         treeView1.AfterSelect +=  treeView1_AfterSelect ;
         treeView1.NodeMouseDoubleClick +=  treeView1_NodeMouseDoubleClick ;
@@ -117,15 +119,25 @@ partial class ServerList
         // 
         // panel1
         // 
-        panel1.Anchor =     AnchorStyles.Top  |  AnchorStyles.Bottom   |  AnchorStyles.Left ;
-        panel1.BackColor = Color.White;
+        panel1.BackColor = Color.WhiteSmoke;
+        panel1.Controls.Add( panel2 );
         panel1.Controls.Add( groupBox2 );
         panel1.Controls.Add( groupBox1 );
-        panel1.Location = new Point( 222, 12 );
+        panel1.Dock = DockStyle.Fill;
+        panel1.Location = new Point( 204, 0 );
         panel1.Name = "panel1";
-        panel1.Size = new Size( 290, 198 );
+        panel1.Size = new Size( 297, 201 );
         panel1.TabIndex = 1;
         panel1.Visible = false;
+        // 
+        // panel2
+        // 
+        panel2.BackColor = SystemColors.ScrollBar;
+        panel2.Dock = DockStyle.Left;
+        panel2.Location = new Point( 0, 0 );
+        panel2.Name = "panel2";
+        panel2.Size = new Size( 1, 201 );
+        panel2.TabIndex = 14;
         // 
         // groupBox2
         // 
@@ -134,9 +146,9 @@ partial class ServerList
         groupBox2.Controls.Add( listBox1 );
         groupBox2.Controls.Add( numericUpDown2 );
         groupBox2.Controls.Add( label1 );
-        groupBox2.Location = new Point( 3, 195 );
+        groupBox2.Location = new Point( 3, 199 );
         groupBox2.Name = "groupBox2";
-        groupBox2.Size = new Size( 283, 187 );
+        groupBox2.Size = new Size( 286, 187 );
         groupBox2.TabIndex = 13;
         groupBox2.TabStop = false;
         groupBox2.Text = "Message broading settings";
@@ -202,9 +214,9 @@ partial class ServerList
         groupBox1.Controls.Add( button2 );
         groupBox1.Controls.Add( textBox2 );
         groupBox1.Controls.Add( button1 );
-        groupBox1.Location = new Point( 3, -3 );
+        groupBox1.Location = new Point( 6, 3 );
         groupBox1.Name = "groupBox1";
-        groupBox1.Size = new Size( 283, 192 );
+        groupBox1.Size = new Size( 283, 196 );
         groupBox1.TabIndex = 12;
         groupBox1.TabStop = false;
         groupBox1.Text = "groupBox1";
@@ -214,9 +226,9 @@ partial class ServerList
         checkBox3.AutoSize = true;
         checkBox3.Location = new Point( 65, 138 );
         checkBox3.Name = "checkBox3";
-        checkBox3.Size = new Size( 97, 19 );
+        checkBox3.Size = new Size( 98, 19 );
         checkBox3.TabIndex = 13;
-        checkBox3.Text = "EnableCheats";
+        checkBox3.Text = "Enable cheats";
         checkBox3.UseVisualStyleBackColor = true;
         checkBox3.CheckedChanged +=  checkBox3_CheckedChanged ;
         // 
@@ -225,9 +237,9 @@ partial class ServerList
         checkBox5.AutoSize = true;
         checkBox5.Location = new Point( 65, 117 );
         checkBox5.Name = "checkBox5";
-        checkBox5.Size = new Size( 204, 19 );
+        checkBox5.Size = new Size( 202, 19 );
         checkBox5.TabIndex = 12;
-        checkBox5.Text = "Message broadcaster (May Crash)";
+        checkBox5.Text = "Message broadcaster (may crash)";
         checkBox5.UseVisualStyleBackColor = true;
         checkBox5.CheckedChanged +=  checkBox5_CheckedChanged ;
         // 
@@ -342,7 +354,7 @@ partial class ServerList
         AutoScaleDimensions = new SizeF( 7F, 15F );
         AutoScaleMode = AutoScaleMode.Font;
         BackColor = Color.White;
-        ClientSize = new Size( 554, 211 );
+        ClientSize = new Size( 501, 201 );
         Controls.Add( panel1 );
         Controls.Add( treeView1 );
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -391,4 +403,5 @@ partial class ServerList
     private Label label1;
     private System.Windows.Forms.Timer timer2;
     private CheckBox checkBox3;
+    private Panel panel2;
 }

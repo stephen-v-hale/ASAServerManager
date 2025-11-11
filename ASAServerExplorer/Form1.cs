@@ -3,6 +3,7 @@ using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using System.Xml.Linq;
 
@@ -16,8 +17,6 @@ namespace ASAServerExplorer
 
         Authentication currentAuth;
         internal static Rcon currentRcon;
-        int reconnectAttemps = 1;
-        int maxReconnectAttempts = 20;
         internal static bool disconnected = false;
 
         ServerList._ServerListItem _currentItem;
@@ -41,150 +40,185 @@ namespace ASAServerExplorer
 
         }
 
+        string createPasswordText( string password )
+        {
+            string pw = "";
+            for ( int i = 0; i < password.Length; i++ )
+            {
+                pw += "*";
+            }
+            return pw;
+        }
+
         private void timer1_Tick( object sender, EventArgs e )
         {
-
-            if ( disconnected )
+            if ( !disconnected )
             {
-                timer3.Stop();
+                if ( currentRcon != null )
+                {
+                    toolStripStatusLabel3.Text = "|";
+                    toolStripStatusLabel4.Text = $"{currentRcon.ConnectedPlayers.Count} Players Online";
+                }
             }
 
-            statusToolStripMenuItem.ForeColor = toolStripStatusLabel1.ForeColor;
-            statusToolStripMenuItem.Text = toolStripStatusLabel1.Text;
 
-            if ( currentRcon != null )
-            {
-                Ping ping = new Ping();
-                try
-                {
-                    var result = ping.Send($"{currentAuth.Address}");
-
-                    if ( result.Status == IPStatus.Success )
-                    {
-                        if ( disconnected )
-                        {
-                            Connect( currentAuth );
-                        }
-                    }
-                }
-                catch
-                {
-                    if ( reconnectAttemps != maxReconnectAttempts )
-                    {
-
-                        toolStripStatusLabel1.ForeColor = Color.Red;
-                        if ( !disconnected )
-                        {
-                            toolStripStatusLabel1.Text = "Reconnecting.. " + reconnectAttemps;
-                        }
-
-                        if ( !HasNetworkConnection() )
-                        {
-                            toolStripStatusLabel1.Text = "No Network Connection";
-                            reconnectAttemps = maxReconnectAttempts;
-
-                            notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", "Disconnected. Reason: No Network Connection", ToolTipIcon.Warning );
-                        }
-
-
-                        if ( !HasInternetConnection() )
-                        {
-                            toolStripStatusLabel1.Text = "No Internet Connection";
-                            reconnectAttemps = maxReconnectAttempts;
-
-                            notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", "Disconnected. Reason: No Internet Connection", ToolTipIcon.Warning );
-                        }
-
-                        toolStripStatusLabel4.Text = "";
-                        toolStripStatusLabel3.Text = "";
-                        toolStripStatusLabel1.Image = Properties.Resources.cross;
-                        reconnectAttemps += 1;
-                        disconnected = true;
-                        disconnectToolStripMenuItem_Click( sender, e );
-                        timer3.Stop();
-                    }
-                    else
-                    {
-                        toolStripStatusLabel1.ForeColor = Color.Red;
-                        toolStripStatusLabel1.Text = "Disconnected.";
-
-                        toolStripStatusLabel1.Image = Properties.Resources.cross;
-                        toolStripStatusLabel4.Text = "";
-                        toolStripStatusLabel3.Text = "";
-                        currentRcon = null;
-
-                        disconnectToolStripMenuItem_Click( sender, e );
-                        timer3.Stop();
-                    }
-                }
-                panel3.Enabled = false;
-            }
+            if (!string.IsNullOrWhiteSpace( richTextBox1.Text ) )
+                toolStripMenuItem5.Enabled = true;
             else
-            {
-                panel3.Enabled = true;
-            }
+                toolStripMenuItem5.Enabled = false;
         }
 
         private async void Connect( Authentication authentication )
         {
-            if ( !HasNetworkConnection() )
+            if ( currentRcon != null )
             {
-                toolStripStatusLabel1.Text = "No Network Connection";
-                reconnectAttemps = maxReconnectAttempts;
-
-                notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", "Disconnected. Reason: No Network Connection", ToolTipIcon.Warning );
-
-                return;
+                currentRcon.Disconnect();
             }
+            currentRcon = new Rcon( authentication );
 
+            currentRcon.AllowLogRedirect = _currentItem.rtgl;
 
-            if ( !HasInternetConnection() )
+            currentRcon.OnPlayerJoined += ( s ) =>
             {
-                toolStripStatusLabel1.Text = "No Internet Connection";
-                reconnectAttemps = maxReconnectAttempts;
+                executeIfInvoke( treeView1, () =>
+                {
+                    // try find existing
+                    TreeNode existing = treeView1.Nodes
+                                .Cast<TreeNode>()
+                                .FirstOrDefault(n => n.Text == s.Name);
 
-                notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", "Disconnected. Reason: No Internet Connection", ToolTipIcon.Warning );
+                    if ( existing != null )
+                    {
+                        // maybe update properties here if you want
+                        existing.Tag = s;
+                    }
+                    else
+                    {
+                        // add new
+                        TreeNode node = new TreeNode($"{s.Name}");
+                        node.Nodes.AddRange( new[]
+                        {
+            new TreeNode($"ARK ID: {s.ID}"),
+            new TreeNode($"Valid: Yes")
+        } );
+                        node.Tag = s;
+                        treeView1.Nodes.Add( node );
+                    }
+                } );
 
-                return;
-            }
+                if ( _currentItem.rtpl )
+                {
+                    notifyIcon1.ShowBalloonTip( 10, "", $"{s.Name} has joined {ServerName}", ToolTipIcon.Info );
+                    SetLogText( $"{s.Name} has joined {ServerName}" );
+                }
+            };
 
+            currentRcon.OnPlayerLeave += ( s ) =>
+            {
+                executeIfInvoke( treeView1, () =>
+                {
+                    if ( treeView1.Nodes.Count == 0 )
+                        return;
 
-            if ( currentRcon == null )
-                currentRcon = new Rcon( authentication );
+                    // find the node once
+                    var node = treeView1.Nodes
+                            .Cast<TreeNode>()
+                            .FirstOrDefault(n => n.Text == s.Name);
 
-            currentRcon.OnAvaliabilityCompleted += ( s, e ) =>
+                    if ( node == null )
+                        return;
+
+                    treeView1.Nodes.Remove( node );
+                } );
+
+                if ( _currentItem.rtpl )
+                {
+                    notifyIcon1.ShowBalloonTip( 10, "", $"{s.Name} has left {ServerName}", ToolTipIcon.Info );
+                    SetLogText( $"{s.Name} has left {ServerName}" );
+                }
+            };
+            currentRcon.OnNetworkAccessCheck += ( e ) =>
+            {
+                if ( e.HasNetworkAccess && !e.HasInternetAccess )
+                {
+                    SetErrorLogMessage( "Has network access, but no internet access" );
+                    return;
+                }
+                else if ( !e.HasNetworkAccess && !e.HasInternetAccess )
+                {
+                    SetErrorLogMessage( "Has no network or internet connection " );
+                    return;
+                }
+                else if ( e.HasNetworkAccess && e.HasInternetAccess )
+                {
+                    SetLogText( "Internet Access ✅" );
+                }
+            };
+            currentRcon.OnAvaliabilityCompleted += ( e ) =>
             {
                 if ( e )
                 {
                     SetLogText( "Server Reachable ✅" );
                 }
             };
-            currentRcon.OnError += ( sender, e ) =>
+            currentRcon.OnError += ( e ) =>
             {
                 richTextBox1.Invoke( () =>
                 {
-                    SetErrorLogMessage( $"ERROR: {e.Message}" );
-                    timer3.Stop();
-                    timer4.Stop();
+                    SetErrorLogMessage( $"{e.Message}" );
+                } );
+            };
+            currentRcon.OnConnecting += () =>
+            {
+                executeIfInvoke( statusStrip1, () =>
+                {
+                    toolStripStatusLabel1.ForeColor = Color.Black;
+                    toolStripStatusLabel1.Text = $"Connecting to {authentication.Address}:{authentication.Port} ({ServerName})";
+
+                    SetLogText( $"Connecting to {authentication.Address}:{authentication.Port} ({ServerName})" );
+                    panel3.Enabled = false;
                 } );
             };
 
-            toolStripStatusLabel1.ForeColor = Color.Black;
-
-            toolStripStatusLabel1.Text = "Connecting to " + authentication.Address;
-
-            try
+            currentRcon.OnConnected += async ( s ) =>
             {
-                if ( await currentRcon.ConnectAsync() )
+                if ( s )
                 {
-                    toolStripStatusLabel1.ForeColor = Color.Black;
-                    toolStripStatusLabel1.Text = "Connected ✅";
+                    executeIfInvoke( statusStrip1, () =>
+                    {
+                        toolStripStatusLabel1.ForeColor = Color.Black;
+                        toolStripStatusLabel1.Text = "Connected ✅";
 
-                    if ( await currentRcon.AuthenticateAsync() )
+                        SetLogText( "Connected ✅" );
+                    } );
+
+                    await currentRcon.AuthenticateAsync();
+                }
+                else
+                {
+                    executeIfInvoke( statusStrip1, () =>
+                    {
+                        toolStripStatusLabel1.ForeColor = Color.Black;
+                        toolStripStatusLabel1.Text = "Not connected, authentication ignored";
+                    } );
+                }
+            };
+
+            currentRcon.OnLogEntry += ( s ) =>
+            {
+                if ( _currentItem.rtgl )
+                    SetLogText( $"{s.Value} [{s.Type}]" );
+            };
+
+            currentRcon.OnAuthenticated += async ( s ) =>
+            {
+                if ( s )
+                {
+                    executeIfInvoke( statusStrip1, async () =>
                     {
                         toolStripStatusLabel1.ForeColor = Color.DarkGreen;
                         toolStripStatusLabel1.Text = "Authenticated";
-
+                        SetLogText( "Authenticated ✅" );
                         toolStripStatusLabel1.Image = Properties.Resources.check;
 
                         disconnected = false;
@@ -195,46 +229,99 @@ namespace ASAServerExplorer
                         disconnectToolStripMenuItem1.Enabled = true;
                         notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Connected & Authenticated to {authentication.Address}:{authentication.Port}", ToolTipIcon.Info );
 
-                        if ( _currentItem.rtgl || _currentItem.rtpl )
-                        {
-                            timer3.Start();
-                        }
-
-                        if ( _currentItem.mb )
-                        {
-                            timer4.Start();
-                        }
-                        reconnectAttemps = 1;
-
                         if ( _currentItem.cheats )
                         {
-                            SetLogText( "Enabling cheats" );
                             if ( await currentRcon.EnableCheats() )
                                 SetLogText( "Cheats Enabled ✅" );
                         }
-                    }
-                    else
+
+                        if ( panel5.InvokeRequired )
+                            panel5.Invoke( () => panel5.Visible = true );
+                        else
+                            panel5.Visible = true;
+
+                        if ( _currentItem.mb )
+                        {
+                            timer5.Enabled = true;
+                        }
+                    } );
+
+                    disconnected = false;
+
+
+                    executeIfInvoke( menuStrip1, () => playersToolStripMenuItem.Enabled = true );
+                    executeIfInvoke( menuStrip1, () => playersToolStripMenuItem1.Enabled = true );
+                    executeIfInvoke( menuStrip1, () => disconnectToolStripMenuItem.Enabled = true );
+                    executeIfInvoke( menuStrip1, () => disconnectToolStripMenuItem1.Enabled = true );
+                    executeIfInvoke( menuStrip1, () => toolsToolStripMenuItem.Enabled = true );
+
+                }
+                else
+                {
+                    executeIfInvoke( statusStrip1, async () =>
                     {
                         toolStripStatusLabel1.ForeColor = Color.Red;
-                        toolStripStatusLabel1.Text = "Connected";
+                        toolStripStatusLabel1.Text = "Not authenticated";
 
                         toolStripStatusLabel1.Image = Properties.Resources.cross;
 
-                        disconnected = false;
-                    }
+                        SetErrorLogMessage( "Not Authenticated." );
+
+                        disconnected = true;
+
+                        playersToolStripMenuItem1.Enabled = false;
+                        broadcastToolStripMenuItem.Enabled = false;
+
+                        disconnectToolStripMenuItem1.Enabled = false;
+                        notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Could not authenticate.", ToolTipIcon.Info );
+                        timer5.Enabled = false;
+                    } );
+
+                    currentRcon.Disconnect();
                 }
-            }
-            catch
+            };
+
+            currentRcon.OnDisconnected += () =>
             {
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = "Unable to connect. Server may be down.";
 
+                disconnected = true;
 
-                toolStripStatusLabel1.Image = Properties.Resources.cross;
+                executeIfInvoke( menuStrip1, () =>
+                {
+                    panel3.Enabled = true;
+                    toolStripStatusLabel1.ForeColor = Color.Red;
+                    toolStripStatusLabel1.Text = "Disconnected";
+                    toolStripStatusLabel1.Image = null;
+                    toolStripStatusLabel4.Text = "";
+                    toolStripStatusLabel3.Text = "";
+                    SetErrorLogMessage( "Disconnected" );
+                    playersToolStripMenuItem1.Enabled = false;
+                    broadcastToolStripMenuItem.Enabled = false;
+                    disconnectToolStripMenuItem1.Enabled = false;
+                    timer5.Enabled = false;
 
+                    toolStripStatusLabel3.Text = "";
+                    toolStripStatusLabel4.Text = $"";
+                } );
 
-                disconnected = false;
-            }
+                executeIfInvoke( menuStrip1, () => disconnectToolStripMenuItem.Enabled = false );
+                executeIfInvoke( menuStrip1, () => disconnectToolStripMenuItem1.Enabled = false );
+
+                executeIfInvoke( menuStrip1, () => playersToolStripMenuItem.Enabled = false );
+                executeIfInvoke( menuStrip1, () => playersToolStripMenuItem1.Enabled = false );
+
+                executeIfInvoke( menuStrip1, () => toolsToolStripMenuItem.Enabled = false );
+
+                notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Disconnected", ToolTipIcon.Info );
+
+                executeIfInvoke( treeView1, treeView1.Nodes.Clear );
+                executeIfInvoke( panel5, () => { panel5.Visible = false; } );
+
+                currentRcon = null;
+            };
+
+            await currentRcon.ConnectAsync();
+
         }
 
         // Check if there is a network connection
@@ -282,8 +369,6 @@ namespace ASAServerExplorer
                 MessagesToBroadcast = info.mbl;
                 MessageTimeInterval = info.mblt;
                 Connect( e );
-
-                timer3_Tick( this, EventArgs.Empty );
             };
             list.ShowDialog();
         }
@@ -297,66 +382,19 @@ namespace ASAServerExplorer
 
         private void timer2_Tick( object sender, EventArgs e )
         {
-            if ( currentRcon != null )
-            {
-                disconnectToolStripMenuItem.Enabled = true;
-            }
-            else
-            {
-                disconnectToolStripMenuItem.Enabled = false;
-            }
-
-            if ( currentRcon == null )
-            {
-                playersToolStripMenuItem.Enabled = false;
-                toolsToolStripMenuItem.Enabled = false;
-
-            }
-            else
-            {
-                toolsToolStripMenuItem.Enabled = true;
-                playersToolStripMenuItem.Enabled = true;
-            }
-
-            if ( disconnected )
-            {
-                button1.Enabled = false;
-                textBox1.Enabled = false;
-                comboBox1.Enabled = false;
-            }
-            else
-            {
-                button1.Enabled = true;
-                textBox1.Enabled = true;
-                comboBox1.Enabled = true;
-            }
         }
 
         private void disconnectToolStripMenuItem_Click( object sender, EventArgs e )
         {
-            if ( currentRcon != null && currentRcon.Disconnect() )
-            {
-                disconnected = true;
-                currentRcon = null;
-
-
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = "Disconnected";
-                toolStripStatusLabel1.Image = Properties.Resources.cross;
-                toolStripStatusLabel4.Text = "";
-                toolStripStatusLabel3.Text = "";
-
-                playersToolStripMenuItem1.Enabled = false;
-                broadcastToolStripMenuItem.Enabled = false;
-                disconnectToolStripMenuItem1.Enabled = false;
-
-                notifyIcon1.ShowBalloonTip( 10, "ASA Server Manager", $"Disconnected", ToolTipIcon.Info );
-                timer3.Enabled = false;
-                timer4.Enabled = false;
-                panel8.Controls.Clear();
-            }
+            currentRcon.Disconnect();
         }
-
+        void executeIfInvoke( Control control, Action a )
+        {
+            if ( control.InvokeRequired )
+                control.Invoke( a );
+            else
+                a();
+        }
         private async void button1_Click_1( object sender, EventArgs e )
         {
             try
@@ -368,7 +406,6 @@ namespace ASAServerExplorer
 
                 if ( result.Contains( "Server received" ) )
                 {
-                    SetErrorLogMessage( result.Replace( "\n", "" ) );
                 }
                 else
                 {
@@ -399,14 +436,6 @@ namespace ASAServerExplorer
         private void toolStripStatusLabel1_TextChanged( object sender, EventArgs e )
         {
 
-            if ( toolStripStatusLabel1.ForeColor == Color.Red )
-            {
-                SetErrorLogMessage( toolStripStatusLabel1.Text );
-            }
-            else
-            {
-                SetLogText( toolStripStatusLabel1.Text, toolStripStatusLabel1.ForeColor, Color.White );
-            }
         }
 
         void SetErrorLogMessage( string message )
@@ -415,19 +444,40 @@ namespace ASAServerExplorer
         }
         void SetLogText( string message, Color fontColor, Color background )
         {
-            richTextBox1.SelectionColor = fontColor;
-            richTextBox1.SelectionBackColor = background;
-            richTextBox1.SelectedText = message + "\n";
-            richTextBox1.SelectionColor = Color.Black;
-            richTextBox1.SelectionBackColor = Color.White;
-            richTextBox1.ScrollToCaret();
+            if ( richTextBox1.InvokeRequired )
+            {
+                richTextBox1.Invoke( () =>
+                {
+                    richTextBox1.SelectionColor = fontColor;
+                    richTextBox1.SelectionBackColor = background;
+                    richTextBox1.SelectedText = message + "\n";
+                    richTextBox1.SelectionColor = Color.Black;
+                    richTextBox1.SelectionBackColor = Color.White;
+                    richTextBox1.ScrollToCaret();
+                } );
+            }
+            else
+            {
+                richTextBox1.SelectionColor = fontColor;
+                richTextBox1.SelectionBackColor = background;
+                richTextBox1.SelectedText = message + "\n";
+                richTextBox1.SelectionColor = Color.Black;
+                richTextBox1.SelectionBackColor = Color.White;
+                richTextBox1.ScrollToCaret();
+            }
         }
         void SetLogText( string message ) => SetLogText( message, Color.Black, Color.White );
 
         private void Form1_FormClosed( object sender, FormClosedEventArgs e )
         {
             if ( exitApp )
+            {
+                if ( currentRcon != null )
+                    currentRcon.Disconnect();
+
                 Process.GetCurrentProcess().Kill();
+
+            }
 
         }
 
@@ -454,115 +504,46 @@ namespace ASAServerExplorer
             }
         }
 
-        int lastPlayerCount = 0;
-        /// <summary>
-        /// Called by timer. Compares last known player list with current one.
-        /// Detects joins and leaves.
-        /// </summary>
-        private List<string> _lastPlayers = new List<string>();
-        private List<ASAPlayer> joined1 = new List<ASAPlayer>();
-
-        private List<string> _lastLog = new List<string>();
         private async void timer3_Tick( object sender, EventArgs e )
         {
+            await DoOtherStuff();
+        }
 
-            if ( currentRcon != null && currentRcon.IsConnected && !disconnected )
-            {
-                var players = await currentRcon.GetPlayerList();
-                var currentPlayers = players
+
+        async Task DoOtherStuff()
+        {
+            if ( currentRcon == null ) return;
+            if ( !currentRcon.IsConnected ) return;
+
+            var players = await currentRcon.GetPlayerList();
+            var currentPlayers = players
               .Where( p => p.ValidPlayer )
               .Select( p => p.Name )
               .ToList();
 
-                if ( _currentItem.rtpl )
+            currentTime += 5;
+            if ( _currentItem.mb )
+                if ( currentTime >= _currentItem.mblt )
                 {
-                    panel8.Controls.Clear();
-
-                    // detect joins
-                    var joined = currentPlayers.Except(_lastPlayers).ToList();
-
-                    // detect leaves
-                    var left = _lastPlayers.Except(currentPlayers).ToList();
-
-
-                    joined1.Clear();
-                    // notify joins
-                    foreach ( var name in joined )
+                    if ( players.Length > 0 )
                     {
-                        notifyIcon1.ShowBalloonTip( 10, "Players", $"{name} has joined {ServerName}", ToolTipIcon.Info );
+                        if ( currentMessageIndex > MessagesToBroadcast.Count - 1 )
+                            currentMessageIndex = 0;
 
-                        SetLogText( $"{name} has joined {ServerName}\n" );
-
-                        foreach ( var player in players )
-                            if ( player.Name == name || player.Name.Contains( name ) )
-                                joined1.Add( player );
-                    }
-
-                    // notify leaves
-                    foreach ( var name in left )
-                    {
-                        notifyIcon1.ShowBalloonTip( 10, "Players", $"{name} has left {ServerName}", ToolTipIcon.Info );
-                        SetLogText( $"{name} has left {ServerName}\n" );
-                    }
-                    // save for next tick diff
-                    _lastPlayers = currentPlayers;
-
-
-                    foreach ( var i in players )
-                    {
-                        var playerItem = new PlayerUserControl(i, i.ValidPlayer);
-                        playerItem.Dock = DockStyle.Top;
-                        panel8.Controls.Add( playerItem );
-                    }
-
-                    toolStripStatusLabel4.Text = $"{currentPlayers.Count} Players Online";
-                    toolStripStatusLabel3.Text = "|";
-                }
-
-                if ( _currentItem.rtgl )
-                {
-                    var currentLogs = await currentRcon.GetServerLog();
-                    var logs = currentLogs.ToList().Except(_lastLog).ToList();
-                    var previous = _lastLog.Except(currentLogs).ToList();
-
-                    foreach ( var log in logs )
-                    {
-                        if ( !log.Contains( "Server received" ) && !string.IsNullOrWhiteSpace( log ) )
-                            SetLogText( log );
-                    }
-
-                    _lastLog = currentLogs.ToList();
-                }
-
-                if ( _currentItem.mb )
-                {
-                    currentTime += 5;
-
-                    if ( currentTime >= _currentItem.mblt )
-                    {
-
-                        if ( players.Length > 0 )
+                        foreach ( var p in players )
                         {
-                            if ( currentMessageIndex > MessagesToBroadcast.Count - 1 )
-                                currentMessageIndex = 0;
-
-                            foreach ( var p in players )
+                            if ( p.ValidPlayer )
                             {
-                                if ( p.ValidPlayer )
-                                {
-                                    p.SendMessage( MessagesToBroadcast[currentMessageIndex] );
-                                }
+                                p.SendMessage( MessagesToBroadcast[currentMessageIndex] );
                             }
                         }
-
-                        currentMessageIndex += 1;
-                        currentTime = 0;
                     }
+
+                    currentMessageIndex += 1;
+                    currentTime = 0;
                 }
-            }
-
-
         }
+
 
         private void notifyIcon1_MouseDoubleClick( object sender, MouseEventArgs e )
         {
@@ -661,6 +642,7 @@ namespace ASAServerExplorer
                 "DoRestartLevel"=> "Empty arguments",
                 "GetChat"=> "<index>",
                 "Raw" => "<command> <args>",
+                _ => "NONE.",
             };
 
             textBox1.PlaceholderText = text;
@@ -668,6 +650,19 @@ namespace ASAServerExplorer
 
         private void panel3_Paint( object sender, PaintEventArgs e )
         {
+            switch ( panel5.Visible )
+            {
+                case true:
+                e.Graphics.DrawLine( new Pen( Color.FromKnownColor( KnownColor.ScrollBar ) ),
+                new Point( panel5.Width, e.ClipRectangle.Y + e.ClipRectangle.Height - 1 ),
+                new PointF( panel5.Width + e.ClipRectangle.Width - panel5.Width, e.ClipRectangle.Y + e.ClipRectangle.Height - 1 ) );
+                break;
+                case false:
+                e.Graphics.DrawLine( new Pen( Color.FromKnownColor( KnownColor.ScrollBar ) ),
+                    new Point( e.ClipRectangle.X, e.ClipRectangle.Y + e.ClipRectangle.Height - 1 ),
+                    new PointF( e.ClipRectangle.X + e.ClipRectangle.Width, e.ClipRectangle.Y + e.ClipRectangle.Height - 1 ) );
+                break;
+            }
         }
 
         private void menuStrip1_Paint( object sender, PaintEventArgs e )
@@ -677,6 +672,11 @@ namespace ASAServerExplorer
 
         private void button2_Click( object sender, EventArgs e )
         {
+            if ( !ensureContent( textBox2, "Please enter the host address." ) ) return;
+            if ( !ensureContent( textBox3, "Please enter the password" ) ) return;
+            if ( !ensureContent( numericUpDown1, "Port must be greater than 0" ) ) return;
+
+
             Authentication ee = new Authentication(textBox2.Text, textBox3.Text, (int)numericUpDown1.Value);
             ServerName = "Quick Connect";
             currentAuth = ee;
@@ -694,12 +694,30 @@ namespace ASAServerExplorer
             timer3_Tick( this, EventArgs.Empty );
         }
 
+        bool ensureContent( Control control, string message )
+        {
+            if ( control is TextBox )
+                if ( string.IsNullOrEmpty( control.Text ) )
+                {
+                    SetLogText( message, Color.Black, Color.Yellow );
+                    return false;
+                }
+                else
+                    return true;
+
+            if ( control is NumericUpDown )
+                if ( ( ( NumericUpDown )control ).Value > 0 )
+                {
+                    SetLogText( message, Color.Black, Color.Yellow );
+                    return false;
+                }
+                else
+                    return true;
+
+            return false;
+        }
         int currentTime = 0;
         int currentMessageIndex = 0;
-        private async void timer4_Tick( object sender, EventArgs e )
-        {
-
-        }
 
         private void button3_Click( object sender, EventArgs e )
         {
@@ -727,7 +745,116 @@ namespace ASAServerExplorer
 
         private void panel7_Paint( object sender, PaintEventArgs e )
         {
-            e.Graphics.FillRectangle( new LinearGradientBrush( e.ClipRectangle, Color.White, Color.WhiteSmoke, LinearGradientMode.Vertical ), e.ClipRectangle );
+
+        }
+        private async void timer5_Tick( object sender, EventArgs e )
+        {
+            await DoOtherStuff();
+        }
+
+        private void kickToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            var asaPlayer = (ASAPlayer)(treeView1.SelectedNode).Tag;
+
+            if ( asaPlayer == null )
+                return;
+
+
+            asaPlayer.Kick();
+            SetLogText( $"{asaPlayer.Name} has been kicked" );
+
+
+            treeView1.Nodes.Remove( treeView1.SelectedNode );
+        }
+
+        private void banToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            var asaPlayer = (ASAPlayer)(treeView1.SelectedNode).Tag;
+
+            if ( asaPlayer == null )
+                return;
+
+
+            asaPlayer.Ban();
+            SetLogText( $"{asaPlayer.Name} has been banned" );
+
+
+            treeView1.Nodes.Remove( treeView1.SelectedNode );
+        }
+
+        private void whitelistToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            var asaPlayer = (ASAPlayer)(treeView1.SelectedNode).Tag;
+
+            if ( asaPlayer == null )
+                return;
+
+
+            asaPlayer.WhiteList();
+            SetLogText( $"{asaPlayer.Name} has been white listed" );
+        }
+
+        private void blackListToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            var asaPlayer = (ASAPlayer)(treeView1.SelectedNode).Tag;
+
+            if ( asaPlayer == null )
+                return;
+
+
+            asaPlayer.Blacklist();
+            SetLogText( $"{asaPlayer.Name} has been black listed" );
+        }
+
+        private void treeView1_AfterSelect( object sender, TreeViewEventArgs e )
+        {
+            if ( treeView1.SelectedNode.Tag is ASAPlayer )
+            {
+                foreach ( var item in contextMenuStrip2.Items )
+                    if ( item is ToolStripMenuItem )
+                    {
+                        ( ( ToolStripMenuItem )item ).Enabled = true;
+                    }
+            }
+            else
+            {
+                foreach ( var item in contextMenuStrip2.Items )
+                    if ( item is ToolStripMenuItem )
+                    {
+                        ( ( ToolStripMenuItem )item ).Enabled = false;
+                    }
+            }
+        }
+
+        private void messageToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+
+            var asaPlayer = (ASAPlayer)(treeView1.SelectedNode).Tag;
+
+            if ( asaPlayer == null )
+                return;
+
+            asaPlayer.SendMessage( InputBox.Show( "The message to send " + asaPlayer.Name, "Send user message" ) );
+
+            SetLogText( "Message sent to " + asaPlayer.Name );
+        }
+
+        private void consoleToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+        }
+
+        private void panel5_VisibleChanged( object sender, EventArgs e )
+        {
+            panel3.Invalidate();
+        }
+
+        private void aboutToolStripMenuItem_Click_1( object sender, EventArgs e )
+        {
+            new About().ShowDialog();
+        }
+
+        private void preferencesToolStripMenuItem_Click( object sender, EventArgs e )
+        {
         }
     }
 }
@@ -752,3 +879,111 @@ class WhiteSmokeRenderer : ToolStripProfessionalRenderer
         base.OnRenderToolStripBackground( e );
     }
 }
+internal class ModernMenuRenderer : ToolStripProfessionalRenderer
+    {
+        private static readonly Color BackgroundColor = Color.WhiteSmoke;
+        private static readonly Color ItemHoverColor = Color.FromArgb(230, 230, 230);
+        private static readonly Color ItemPressedColor = Color.FromArgb(210, 210, 210);
+        private static readonly Color BorderColor = Color.FromArgb(180, 180, 180);
+        private static readonly Color TextColor = Color.Black;
+        private static readonly Color DisabledTextColor = Color.Gray;
+        private static readonly Color SeparatorColor = Color.FromArgb(200, 200, 200);
+        private static readonly Color DropShadowColor = Color.FromArgb(80, 0, 0, 0);
+
+        public ModernMenuRenderer() : base(new ModernMenuColorTable())
+        {
+            RoundedEdges = false;
+        }
+
+        protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+        {
+            using (var b = new SolidBrush(BackgroundColor))
+                e.Graphics.FillRectangle(b, e.AffectedBounds);
+        }
+
+        protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+        {
+            Rectangle rect = new Rectangle(Point.Empty, e.Item.Size);
+
+            if (e.Item.Selected && !e.Item.Pressed)
+            {
+                using (var b = new SolidBrush(ItemHoverColor))
+                    e.Graphics.FillRectangle(b, rect);
+                using (var p = new Pen(BorderColor))
+                    e.Graphics.DrawRectangle(p, 0, 0, rect.Width - 1, rect.Height - 1);
+            }
+            else if (e.Item.Pressed)
+            {
+                using (var b = new SolidBrush(ItemPressedColor))
+                    e.Graphics.FillRectangle(b, rect);
+                using (var p = new Pen(BorderColor))
+                    e.Graphics.DrawRectangle(p, 0, 0, rect.Width - 1, rect.Height - 1);
+            }
+            else if (e.ToolStrip is MenuStrip)
+            {
+                // Top menu background
+                using (var b = new SolidBrush(BackgroundColor))
+                    e.Graphics.FillRectangle(b, rect);
+            }
+        }
+
+        protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+        {
+            e.TextColor = e.Item.Enabled ? TextColor : DisabledTextColor;
+            e.TextFont = e.TextFont ?? SystemFonts.MenuFont;
+            base.OnRenderItemText(e);
+        }
+
+        protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
+        {
+            Rectangle rect = new Rectangle(2, e.Item.ContentRectangle.Height / 2, e.Item.Width - 4, 1);
+            using (var p = new Pen(SeparatorColor))
+                e.Graphics.DrawLine(p, rect.Left, rect.Top, rect.Right, rect.Top);
+        }
+
+        protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
+        {
+            // Custom clean black arrow
+            var arrowColor = e.Item.Enabled ? TextColor : DisabledTextColor;
+            using (var b = new SolidBrush(arrowColor))
+            {
+                var size = new Size(5, 9);
+                var loc = new Point(
+                    e.ArrowRectangle.Left + (e.ArrowRectangle.Width - size.Width) / 2,
+                    e.ArrowRectangle.Top + (e.ArrowRectangle.Height - size.Height) / 2);
+
+                Point[] arrow = {
+                    new Point(loc.X, loc.Y),
+                    new Point(loc.X + size.Width, loc.Y + size.Height / 2),
+                    new Point(loc.X, loc.Y + size.Height)
+                };
+
+                e.Graphics.FillPolygon(b, arrow);
+            }
+        }
+
+        protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+        {
+            using (var p = new Pen(BorderColor))
+                e.Graphics.DrawRectangle(p, new Rectangle(Point.Empty, e.ToolStrip.Size - new Size(1, 1)));
+        }
+
+        protected override void OnRenderDropDownButtonBackground(ToolStripItemRenderEventArgs e)
+        {
+            OnRenderMenuItemBackground(e);
+        }
+    }
+
+    internal class ModernMenuColorTable : ProfessionalColorTable
+    {
+        public override Color ToolStripDropDownBackground => Color.WhiteSmoke;
+        public override Color MenuStripGradientBegin => Color.WhiteSmoke;
+        public override Color MenuStripGradientEnd => Color.WhiteSmoke;
+        public override Color MenuItemBorder => Color.FromArgb(180, 180, 180);
+        public override Color MenuItemSelected => Color.FromArgb(230, 230, 230);
+        public override Color MenuItemPressedGradientBegin => Color.FromArgb(210, 210, 210);
+        public override Color MenuItemPressedGradientEnd => Color.FromArgb(210, 210, 210);
+        public override Color ImageMarginGradientBegin => Color.WhiteSmoke;
+        public override Color ImageMarginGradientEnd => Color.WhiteSmoke;
+        public override Color ToolStripBorder => Color.FromArgb(180, 180, 180);
+    }

@@ -10,7 +10,7 @@ namespace ASAServerExplorer;
 
 public partial class ServerListItem : Form
 {
-    public string Name => textBox2.Text;
+    public new string Name => textBox2.Text;
     public string Address => textBox1.Text;
     public string Password => textBox3.Text;
     public int Port => int.Parse( textBox4.Text );

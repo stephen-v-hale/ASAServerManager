@@ -308,7 +308,7 @@ public partial class ServerList : Form
             groupBox1.Text = info.Name;
             checkBox1.Checked = info.rtgl;
             checkBox2.Checked = info.rtpl;
-            Width = 541;
+            Width = 517;
             panel1.Visible = true;
             numericUpDown2.Value = info.mblt;
             listBox1.Items.AddRange( info.mbl.ToArray() );
@@ -316,7 +316,7 @@ public partial class ServerList : Form
             checkBox3.Checked = info.cheats;
             if ( Form1.currentRcon != null )
             {
-                if ( info.Address == Form1.currentRcon.Authentication.Address )
+                if ( !Form1.disconnected )
                 {
                     button2.Text = "Disconnect";
                 }
@@ -355,14 +355,6 @@ public partial class ServerList : Form
         if ( button2.Text == "Disconnect" )
         {
             Form1.currentRcon.Disconnect();
-            Form1.currentRcon.Dispose();
-            Form1.currentRcon = null;
-
-            Form1.disconnected = true;
-
-            Form1.Instance.toolStripStatusLabel1.ForeColor = Color.Red;
-            Form1.Instance.toolStripStatusLabel1.Text = "Disconnected";
-            Form1.Instance.toolStripStatusLabel1.Image = Properties.Resources.cross;
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -408,12 +400,12 @@ public partial class ServerList : Form
     {
         if ( checkBox5.Checked )
         {
-            Height = 442;
+            Height = 427;
             timer2.Start();
         }
         else
         {
-            Height = 250;
+            Height = 240;
             timer2.Stop();
         }
 
@@ -499,6 +491,17 @@ public class ServerIniParser
         }
 
         return;
+    }
+
+    public string GetValue(string header, string itemName)
+    {
+        foreach(var item in Sections)
+        {
+            if ( item.Name == itemName && item.Owner == header)
+                return item.Value;
+        }
+
+        return "";
     }
 
     public void SaveToFile(string fileName)

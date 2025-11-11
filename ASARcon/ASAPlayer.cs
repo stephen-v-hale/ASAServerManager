@@ -29,10 +29,6 @@ public class ASAPlayer
     /// </summary>
     public bool ValidPlayer { get; }
 
-    public string UE4Id { get; }
-
-
-
     /// <summary>
     /// Initializes a new instance of the ASAPlayer class from a formatted string.
     /// Expected format: "index. name, id"
@@ -41,13 +37,12 @@ public class ASAPlayer
     /// <param name="asaPlayerString">The formatted string containing player info.</param>
     public  ASAPlayer( string asaPlayerString )
     {
-        if ( asaPlayerString.Contains("No Players Connected " ))
+        if ( asaPlayerString.Contains("No players connected" ))
         {
             Index = 0;
             Name = "No players connected";
             ID = "";
             ValidPlayer = false;
-            UE4Id = "";
         }
         else
         { 
@@ -63,14 +58,6 @@ public class ASAPlayer
                 ID = nameIdSplit[1];
                 ValidPlayer = true;
 
-
-                var id = Task<string>.Run(async () =>
-                {
-                    return await Rcon.Instance.SendCommandAsync($"GetPlayerIDForSteamID {ID}");
-                });
-
-                UE4Id = id.Result;
-
             }
             catch
             {
@@ -78,12 +65,26 @@ public class ASAPlayer
                 Name = "Unknown";
                 ID = "Unknown";
                 ValidPlayer = false;
-                UE4Id = "";
             }
         }
     }
 
-    public async void SendMessage( string message ) => await Rcon.Instance.SendMessageToPlayer( message, this );
-    public async void Kick() => await Rcon.Instance.SendCommandAsync( Command.KickPlayer, default, this.ID );
-    public async void Ban() => await Rcon.Instance.SendCommandAsync( Command.BanPlayer, default, this.ID );
+    public async void SendMessage( string message ) => await Rcon.Instance.SendMessageToPlayer( message, this ).ConfigureAwait( false );
+    public async void Kick() => await Rcon.Instance.SendCommandAsync( Command.KickPlayer, default, this.ID ).ConfigureAwait( false );
+    public async void Ban() => await Rcon.Instance.SendCommandAsync( Command.BanPlayer, default, this.ID ).ConfigureAwait( false );
+    public async void WhiteList() => await Rcon.Instance.SendCommandAsync( "AllowPlayerToJoinNoCheck " + ID ).ConfigureAwait( false );
+    public async void Blacklist() => await Rcon.Instance.SendCommandAsync( "DisallowPlayerToJoinNoCheck " + ID ).ConfigureAwait( false );
+
+    public override bool Equals( object obj )
+    {
+        if ( obj is not ASAPlayer other )
+            return false;
+
+        return StringComparer.Ordinal.Equals( ID, other.ID );
+    }
+
+    public override int GetHashCode()
+    {
+        return StringComparer.Ordinal.GetHashCode( ID ?? "" );
+    }
 }

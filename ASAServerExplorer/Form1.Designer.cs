@@ -45,6 +45,7 @@
             setMessageOfTheDayToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem6 = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
             closeToolStripMenuItem = new ToolStripMenuItem();
             playersToolStripMenuItem = new ToolStripMenuItem();
             disconnectToolStripMenuItem = new ToolStripMenuItem();
@@ -53,9 +54,7 @@
             textBox1 = new TextBox();
             button1 = new Button();
             comboBox1 = new ComboBox();
-            timer2 = new System.Windows.Forms.Timer( components );
             richTextBox1 = new RichTextBox();
-            timer3 = new System.Windows.Forms.Timer( components );
             notifyIcon1 = new NotifyIcon( components );
             contextMenuStrip1 = new ContextMenuStrip( components );
             showWindowToolStripMenuItem = new ToolStripMenuItem();
@@ -76,12 +75,20 @@
             label2 = new Label();
             textBox2 = new TextBox();
             label1 = new Label();
-            panel4 = new Panel();
-            timer4 = new System.Windows.Forms.Timer( components );
             panel5 = new Panel();
             panel8 = new Panel();
-            panel13 = new Panel();
+            treeView1 = new TreeView();
+            contextMenuStrip2 = new ContextMenuStrip( components );
+            kickToolStripMenuItem = new ToolStripMenuItem();
+            banToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem7 = new ToolStripSeparator();
+            whitelistToolStripMenuItem = new ToolStripMenuItem();
+            blackListToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            messageToolStripMenuItem = new ToolStripMenuItem();
+            imageList1 = new ImageList( components );
             panel7 = new Panel();
+            panel14 = new Panel();
             button3 = new Button();
             label4 = new Label();
             panel6 = new Panel();
@@ -89,6 +96,7 @@
             panel10 = new Panel();
             panel11 = new Panel();
             panel12 = new Panel();
+            timer5 = new System.Windows.Forms.Timer( components );
             statusStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             panel1.SuspendLayout();
@@ -96,6 +104,8 @@
             panel3.SuspendLayout();
             ( ( System.ComponentModel.ISupportInitialize )numericUpDown1 ).BeginInit();
             panel5.SuspendLayout();
+            panel8.SuspendLayout();
+            contextMenuStrip2.SuspendLayout();
             panel7.SuspendLayout();
             SuspendLayout();
             // 
@@ -142,7 +152,7 @@
             // timer1
             // 
             timer1.Enabled = true;
-            timer1.Interval = 1000;
+            timer1.Interval = 1;
             timer1.Tick +=  timer1_Tick ;
             // 
             // menuStrip1
@@ -157,7 +167,7 @@
             // 
             // serverToolStripMenuItem
             // 
-            serverToolStripMenuItem.DropDownItems.AddRange( new ToolStripItem[] { listToolStripMenuItem, toolStripMenuItem5, toolsToolStripMenuItem, toolStripMenuItem1, closeToolStripMenuItem } );
+            serverToolStripMenuItem.DropDownItems.AddRange( new ToolStripItem[] { listToolStripMenuItem, toolStripMenuItem5, toolsToolStripMenuItem, toolStripMenuItem1, aboutToolStripMenuItem, closeToolStripMenuItem } );
             serverToolStripMenuItem.Name = "serverToolStripMenuItem";
             serverToolStripMenuItem.Size = new Size( 37, 20 );
             serverToolStripMenuItem.Text = "&File";
@@ -168,7 +178,7 @@
             listToolStripMenuItem.Image = Properties.Resources.servers;
             listToolStripMenuItem.Name = "listToolStripMenuItem";
             listToolStripMenuItem.ShortcutKeys =    Keys.Control  |  Keys.S ;
-            listToolStripMenuItem.Size = new Size( 169, 22 );
+            listToolStripMenuItem.Size = new Size( 180, 22 );
             listToolStripMenuItem.Text = "ServersList";
             listToolStripMenuItem.ToolTipText = "Show the saved servers.";
             listToolStripMenuItem.Click +=  listToolStripMenuItem_Click ;
@@ -178,7 +188,7 @@
             toolStripMenuItem5.AutoToolTip = true;
             toolStripMenuItem5.Name = "toolStripMenuItem5";
             toolStripMenuItem5.ShortcutKeys =    Keys.Control  |  Keys.C ;
-            toolStripMenuItem5.Size = new Size( 169, 22 );
+            toolStripMenuItem5.Size = new Size( 180, 22 );
             toolStripMenuItem5.Text = "Clear";
             toolStripMenuItem5.ToolTipText = "Clear the text window";
             toolStripMenuItem5.Click +=  toolStripMenuItem5_Click ;
@@ -186,8 +196,9 @@
             // toolsToolStripMenuItem
             // 
             toolsToolStripMenuItem.DropDownItems.AddRange( new ToolStripItem[] { setMessageOfTheDayToolStripMenuItem, toolStripMenuItem6 } );
+            toolsToolStripMenuItem.Enabled = false;
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            toolsToolStripMenuItem.Size = new Size( 169, 22 );
+            toolsToolStripMenuItem.Size = new Size( 180, 22 );
             toolsToolStripMenuItem.Text = "Tools";
             // 
             // setMessageOfTheDayToolStripMenuItem
@@ -209,13 +220,20 @@
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size( 166, 6 );
+            toolStripMenuItem1.Size = new Size( 177, 6 );
+            // 
+            // aboutToolStripMenuItem
+            // 
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size( 180, 22 );
+            aboutToolStripMenuItem.Text = "About";
+            aboutToolStripMenuItem.Click +=  aboutToolStripMenuItem_Click_1 ;
             // 
             // closeToolStripMenuItem
             // 
             closeToolStripMenuItem.AutoToolTip = true;
             closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            closeToolStripMenuItem.Size = new Size( 169, 22 );
+            closeToolStripMenuItem.Size = new Size( 180, 22 );
             closeToolStripMenuItem.Text = "Close";
             closeToolStripMenuItem.ToolTipText = "Close this window";
             closeToolStripMenuItem.Click +=  closeToolStripMenuItem_Click ;
@@ -223,6 +241,7 @@
             // playersToolStripMenuItem
             // 
             playersToolStripMenuItem.AutoToolTip = true;
+            playersToolStripMenuItem.Enabled = false;
             playersToolStripMenuItem.Name = "playersToolStripMenuItem";
             playersToolStripMenuItem.Size = new Size( 56, 20 );
             playersToolStripMenuItem.Text = "Players";
@@ -232,6 +251,7 @@
             // disconnectToolStripMenuItem
             // 
             disconnectToolStripMenuItem.AutoToolTip = true;
+            disconnectToolStripMenuItem.Enabled = false;
             disconnectToolStripMenuItem.Image = Properties.Resources.cross;
             disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
             disconnectToolStripMenuItem.Size = new Size( 94, 20 );
@@ -263,6 +283,7 @@
             // 
             // textBox1
             // 
+            textBox1.Anchor =     AnchorStyles.Top  |  AnchorStyles.Left   |  AnchorStyles.Right ;
             textBox1.Location = new Point( 145, 4 );
             textBox1.Name = "textBox1";
             textBox1.Size = new Size( 427, 23 );
@@ -270,6 +291,7 @@
             // 
             // button1
             // 
+            button1.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             button1.Location = new Point( 578, 2 );
             button1.Name = "button1";
             button1.Size = new Size( 58, 27 );
@@ -288,30 +310,19 @@
             comboBox1.TabIndex = 7;
             comboBox1.SelectedIndexChanged +=  comboBox1_SelectedIndexChanged ;
             // 
-            // timer2
-            // 
-            timer2.Enabled = true;
-            timer2.Interval = 1;
-            timer2.Tick +=  timer2_Tick ;
-            // 
             // richTextBox1
             // 
             richTextBox1.BackColor = Color.White;
             richTextBox1.BorderStyle = BorderStyle.None;
             richTextBox1.Dock = DockStyle.Fill;
             richTextBox1.Font = new Font( "Consolas", 9.75F, FontStyle.Regular, GraphicsUnit.Point,   0 );
-            richTextBox1.Location = new Point( 178, 58 );
+            richTextBox1.Location = new Point( 173, 58 );
             richTextBox1.Name = "richTextBox1";
             richTextBox1.ReadOnly = true;
-            richTextBox1.Size = new Size( 456, 283 );
+            richTextBox1.Size = new Size( 466, 283 );
             richTextBox1.TabIndex = 7;
             richTextBox1.Text = "";
             richTextBox1.TextChanged +=  richTextBox1_TextChanged ;
-            // 
-            // timer3
-            // 
-            timer3.Interval = 5000;
-            timer3.Tick +=  timer3_Tick ;
             // 
             // notifyIcon1
             // 
@@ -405,7 +416,6 @@
             panel3.Controls.Add( label2 );
             panel3.Controls.Add( textBox2 );
             panel3.Controls.Add( label1 );
-            panel3.Controls.Add( panel4 );
             panel3.Dock = DockStyle.Top;
             panel3.Location = new Point( 0, 24 );
             panel3.Name = "panel3";
@@ -427,7 +437,7 @@
             // 
             // numericUpDown1
             // 
-            numericUpDown1.Anchor =     AnchorStyles.Top  |  AnchorStyles.Left   |  AnchorStyles.Right ;
+            numericUpDown1.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             numericUpDown1.BorderStyle = BorderStyle.FixedSingle;
             numericUpDown1.Location = new Point( 482, 2 );
             numericUpDown1.Maximum = new decimal( new int[] { 999999, 0, 0, 0 } );
@@ -437,6 +447,7 @@
             // 
             // label3
             // 
+            label3.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             label3.AutoSize = true;
             label3.Location = new Point( 444, 6 );
             label3.Name = "label3";
@@ -446,7 +457,7 @@
             // 
             // textBox3
             // 
-            textBox3.Anchor =     AnchorStyles.Top  |  AnchorStyles.Left   |  AnchorStyles.Right ;
+            textBox3.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             textBox3.BorderStyle = BorderStyle.FixedSingle;
             textBox3.Location = new Point( 309, 2 );
             textBox3.Name = "textBox3";
@@ -456,6 +467,7 @@
             // 
             // label2
             // 
+            label2.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             label2.AutoSize = true;
             label2.Location = new Point( 243, 6 );
             label2.Name = "label2";
@@ -465,7 +477,7 @@
             // 
             // textBox2
             // 
-            textBox2.Anchor =     AnchorStyles.Top  |  AnchorStyles.Left   |  AnchorStyles.Right ;
+            textBox2.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             textBox2.BorderStyle = BorderStyle.FixedSingle;
             textBox2.Location = new Point( 54, 3 );
             textBox2.Name = "textBox2";
@@ -474,6 +486,7 @@
             // 
             // label1
             // 
+            label1.Anchor =    AnchorStyles.Top  |  AnchorStyles.Right ;
             label1.AutoSize = true;
             label1.Location = new Point( 10, 7 );
             label1.Name = "label1";
@@ -481,74 +494,137 @@
             label1.TabIndex = 1;
             label1.Text = "Host: ";
             // 
-            // panel4
-            // 
-            panel4.BackColor = SystemColors.ScrollBar;
-            panel4.Dock = DockStyle.Bottom;
-            panel4.Location = new Point( 0, 28 );
-            panel4.Name = "panel4";
-            panel4.Size = new Size( 639, 1 );
-            panel4.TabIndex = 0;
-            // 
-            // timer4
-            // 
-            timer4.Interval = 1000;
-            timer4.Tick +=  timer4_Tick ;
-            // 
             // panel5
             // 
             panel5.BackColor = Color.WhiteSmoke;
             panel5.Controls.Add( panel8 );
-            panel5.Controls.Add( panel13 );
             panel5.Controls.Add( panel7 );
             panel5.Controls.Add( panel6 );
             panel5.Dock = DockStyle.Left;
             panel5.Location = new Point( 0, 53 );
             panel5.Name = "panel5";
-            panel5.Size = new Size( 173, 293 );
+            panel5.Size = new Size( 168, 293 );
             panel5.TabIndex = 9;
             panel5.Visible = false;
+            panel5.VisibleChanged +=  panel5_VisibleChanged ;
             // 
             // panel8
             // 
             panel8.BackColor = Color.White;
+            panel8.Controls.Add( treeView1 );
             panel8.Dock = DockStyle.Fill;
-            panel8.Location = new Point( 0, 37 );
+            panel8.Location = new Point( 0, 36 );
             panel8.Name = "panel8";
-            panel8.Size = new Size( 172, 256 );
+            panel8.Size = new Size( 167, 257 );
             panel8.TabIndex = 3;
             // 
-            // panel13
+            // treeView1
             // 
-            panel13.BackColor = SystemColors.ScrollBar;
-            panel13.Dock = DockStyle.Top;
-            panel13.Location = new Point( 0, 36 );
-            panel13.Name = "panel13";
-            panel13.Size = new Size( 172, 1 );
-            panel13.TabIndex = 2;
+            treeView1.BorderStyle = BorderStyle.None;
+            treeView1.ContextMenuStrip = contextMenuStrip2;
+            treeView1.Dock = DockStyle.Fill;
+            treeView1.ImageIndex = 0;
+            treeView1.ImageList = imageList1;
+            treeView1.Location = new Point( 0, 0 );
+            treeView1.Name = "treeView1";
+            treeView1.SelectedImageIndex = 0;
+            treeView1.Size = new Size( 167, 257 );
+            treeView1.TabIndex = 0;
+            treeView1.AfterSelect +=  treeView1_AfterSelect ;
+            // 
+            // contextMenuStrip2
+            // 
+            contextMenuStrip2.Items.AddRange( new ToolStripItem[] { kickToolStripMenuItem, banToolStripMenuItem, toolStripMenuItem7, whitelistToolStripMenuItem, blackListToolStripMenuItem, toolStripSeparator1, messageToolStripMenuItem } );
+            contextMenuStrip2.Name = "contextMenuStrip2";
+            contextMenuStrip2.Size = new Size( 121, 126 );
+            // 
+            // kickToolStripMenuItem
+            // 
+            kickToolStripMenuItem.Name = "kickToolStripMenuItem";
+            kickToolStripMenuItem.Size = new Size( 120, 22 );
+            kickToolStripMenuItem.Text = "Kick";
+            kickToolStripMenuItem.Click +=  kickToolStripMenuItem_Click ;
+            // 
+            // banToolStripMenuItem
+            // 
+            banToolStripMenuItem.Name = "banToolStripMenuItem";
+            banToolStripMenuItem.Size = new Size( 120, 22 );
+            banToolStripMenuItem.Text = "Ban";
+            banToolStripMenuItem.Click +=  banToolStripMenuItem_Click ;
+            // 
+            // toolStripMenuItem7
+            // 
+            toolStripMenuItem7.Name = "toolStripMenuItem7";
+            toolStripMenuItem7.Size = new Size( 117, 6 );
+            // 
+            // whitelistToolStripMenuItem
+            // 
+            whitelistToolStripMenuItem.Name = "whitelistToolStripMenuItem";
+            whitelistToolStripMenuItem.Size = new Size( 120, 22 );
+            whitelistToolStripMenuItem.Text = "Whitelist";
+            whitelistToolStripMenuItem.Click +=  whitelistToolStripMenuItem_Click ;
+            // 
+            // blackListToolStripMenuItem
+            // 
+            blackListToolStripMenuItem.Name = "blackListToolStripMenuItem";
+            blackListToolStripMenuItem.Size = new Size( 120, 22 );
+            blackListToolStripMenuItem.Text = "BlackList";
+            blackListToolStripMenuItem.Click +=  blackListToolStripMenuItem_Click ;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size( 117, 6 );
+            // 
+            // messageToolStripMenuItem
+            // 
+            messageToolStripMenuItem.Name = "messageToolStripMenuItem";
+            messageToolStripMenuItem.Size = new Size( 120, 22 );
+            messageToolStripMenuItem.Text = "Message";
+            messageToolStripMenuItem.Click +=  messageToolStripMenuItem_Click ;
+            // 
+            // imageList1
+            // 
+            imageList1.ColorDepth = ColorDepth.Depth32Bit;
+            imageList1.ImageStream = ( ImageListStreamer )resources.GetObject( "imageList1.ImageStream" );
+            imageList1.TransparentColor = Color.Transparent;
+            imageList1.Images.SetKeyName( 0, "user.png" );
             // 
             // panel7
             // 
+            panel7.BackColor = Color.WhiteSmoke;
+            panel7.Controls.Add( panel14 );
             panel7.Controls.Add( button3 );
             panel7.Controls.Add( label4 );
             panel7.Dock = DockStyle.Top;
             panel7.Location = new Point( 0, 0 );
             panel7.Name = "panel7";
-            panel7.Size = new Size( 172, 36 );
+            panel7.Size = new Size( 167, 36 );
             panel7.TabIndex = 2;
             panel7.Paint +=  panel7_Paint ;
+            // 
+            // panel14
+            // 
+            panel14.BackColor = SystemColors.ScrollBar;
+            panel14.Dock = DockStyle.Bottom;
+            panel14.Location = new Point( 0, 35 );
+            panel14.Name = "panel14";
+            panel14.Size = new Size( 167, 1 );
+            panel14.TabIndex = 2;
             // 
             // button3
             // 
             button3.BackColor = Color.Transparent;
             button3.FlatAppearance.BorderSize = 0;
             button3.FlatStyle = FlatStyle.Flat;
-            button3.Font = new Font( "Webdings", 9F, FontStyle.Regular, GraphicsUnit.Point,   2 );
-            button3.Location = new Point( 141, 5 );
+            button3.Font = new Font( "Webdings", 9F );
+            button3.ForeColor = Color.Black;
+            button3.Location = new Point( 133, 4 );
             button3.Name = "button3";
             button3.Size = new Size( 28, 27 );
             button3.TabIndex = 1;
             button3.Text = "r";
+            button3.TextAlign = ContentAlignment.TopCenter;
             button3.UseVisualStyleBackColor = false;
             button3.Click +=  button3_Click_1 ;
             // 
@@ -556,10 +632,11 @@
             // 
             label4.AutoSize = true;
             label4.BackColor = Color.Transparent;
-            label4.Font = new Font( "Segoe UI", 14F );
-            label4.Location = new Point( 5, 4 );
+            label4.Font = new Font( "Segoe UI", 10F );
+            label4.ForeColor = Color.Black;
+            label4.Location = new Point( 10, 8 );
             label4.Name = "label4";
-            label4.Size = new Size( 72, 25 );
+            label4.Size = new Size( 52, 19 );
             label4.TabIndex = 0;
             label4.Text = "Players";
             // 
@@ -567,7 +644,7 @@
             // 
             panel6.BackColor = SystemColors.ScrollBar;
             panel6.Dock = DockStyle.Right;
-            panel6.Location = new Point( 172, 0 );
+            panel6.Location = new Point( 167, 0 );
             panel6.Name = "panel6";
             panel6.Size = new Size( 1, 293 );
             panel6.TabIndex = 1;
@@ -575,7 +652,7 @@
             // panel9
             // 
             panel9.Dock = DockStyle.Left;
-            panel9.Location = new Point( 173, 53 );
+            panel9.Location = new Point( 168, 53 );
             panel9.Name = "panel9";
             panel9.Size = new Size( 5, 293 );
             panel9.TabIndex = 10;
@@ -583,26 +660,33 @@
             // panel10
             // 
             panel10.Dock = DockStyle.Top;
-            panel10.Location = new Point( 178, 53 );
+            panel10.Location = new Point( 173, 53 );
             panel10.Name = "panel10";
-            panel10.Size = new Size( 461, 5 );
+            panel10.Size = new Size( 466, 5 );
             panel10.TabIndex = 11;
             // 
             // panel11
             // 
             panel11.Dock = DockStyle.Bottom;
-            panel11.Location = new Point( 178, 341 );
+            panel11.Location = new Point( 173, 341 );
             panel11.Name = "panel11";
-            panel11.Size = new Size( 461, 5 );
+            panel11.Size = new Size( 466, 5 );
             panel11.TabIndex = 12;
             // 
             // panel12
             // 
+            panel12.BackColor = Color.White;
             panel12.Dock = DockStyle.Right;
             panel12.Location = new Point( 634, 58 );
             panel12.Name = "panel12";
             panel12.Size = new Size( 5, 283 );
             panel12.TabIndex = 13;
+            // 
+            // timer5
+            // 
+            timer5.Enabled = true;
+            timer5.Interval = 10000;
+            timer5.Tick +=  timer5_Tick ;
             // 
             // Form1
             // 
@@ -610,10 +694,10 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size( 639, 398 );
-            Controls.Add( richTextBox1 );
             Controls.Add( panel12 );
-            Controls.Add( panel11 );
+            Controls.Add( richTextBox1 );
             Controls.Add( panel10 );
+            Controls.Add( panel11 );
             Controls.Add( panel9 );
             Controls.Add( panel5 );
             Controls.Add( panel3 );
@@ -642,6 +726,8 @@
             panel3.PerformLayout();
             ( ( System.ComponentModel.ISupportInitialize )numericUpDown1 ).EndInit();
             panel5.ResumeLayout( false );
+            panel8.ResumeLayout( false );
+            contextMenuStrip2.ResumeLayout( false );
             panel7.ResumeLayout( false );
             panel7.PerformLayout();
             ResumeLayout( false );
@@ -662,14 +748,12 @@
         private TextBox textBox1;
         private Button button1;
         private ComboBox comboBox1;
-        private System.Windows.Forms.Timer timer2;
         private RichTextBox richTextBox1;
         private Panel panel2;
         private ToolStripMenuItem playersToolStripMenuItem;
         public ToolStripStatusLabel toolStripStatusLabel1;
         private ToolStripMenuItem toolsToolStripMenuItem;
         private ToolStripMenuItem setMessageOfTheDayToolStripMenuItem;
-        private System.Windows.Forms.Timer timer3;
         private ToolStripStatusLabel toolStripStatusLabel3;
         private ToolStripStatusLabel toolStripStatusLabel4;
         private ToolStripStatusLabel toolStripStatusLabel5;
@@ -686,7 +770,6 @@
         private ToolStripMenuItem disconnectToolStripMenuItem1;
         public NotifyIcon notifyIcon1;
         private Panel panel3;
-        private Panel panel4;
         private Label label2;
         private TextBox textBox2;
         private Label label1;
@@ -694,7 +777,6 @@
         private NumericUpDown numericUpDown1;
         private Label label3;
         private TextBox textBox3;
-        private System.Windows.Forms.Timer timer4;
         private Panel panel5;
         private Label label4;
         private Panel panel6;
@@ -707,6 +789,18 @@
         private Panel panel12;
         private ToolStripMenuItem toolStripMenuItem5;
         private ToolStripMenuItem toolStripMenuItem6;
-        private Panel panel13;
+        private System.Windows.Forms.Timer timer5;
+        private TreeView treeView1;
+        private Panel panel14;
+        private ContextMenuStrip contextMenuStrip2;
+        private ToolStripMenuItem kickToolStripMenuItem;
+        private ToolStripMenuItem banToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem7;
+        private ToolStripMenuItem whitelistToolStripMenuItem;
+        private ToolStripMenuItem blackListToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem messageToolStripMenuItem;
+        private ImageList imageList1;
+        private ToolStripMenuItem aboutToolStripMenuItem;
     }
 }
