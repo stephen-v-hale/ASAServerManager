@@ -7,9 +7,8 @@ This app was built to remove friction for admins — fast connect, save servers,
 ---
 
 ## 📷 Screenshots
-![Player List UI](https://github.com/stephen-v-hale/ASAServerManager/blob/main/ScreenShots/Screenshot%202025-11-09%20220646.png)
-![UI](https://github.com/stephen-v-hale/ASAServerManager/blob/main/ScreenShots/Screenshot%202025-11-09%20220656.png)
-![ServersList](https://github.com/stephen-v-hale/ASAServerManager/blob/main/ScreenShots/Screenshot%202025-11-09%20220710.png)
+![UI](https://github.com/stephen-v-hale/ASAServerManager/blob/main/ScreenShots/Screenshot%202025-11-10%20185030.png)
+![ServersList](https://github.com/stephen-v-hale/ASAServerManager/blob/main/ScreenShots/Screenshot%202025-11-10%20184958.png)
 
 ## ⭐ Key Features
 
